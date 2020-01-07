@@ -1,3 +1,4 @@
+//custom middleware
 function authenticator(req, res, next){
     console.log('Authenticating ...');
     next();
