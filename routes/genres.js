@@ -1,23 +1,90 @@
+const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
+//The most powerful schema description language and data validator for JavaScript. https://hapi.dev/family/joi/ 
 const Joi = require('@hapi/joi');
-const genres = [
+
+//Create a new schema for the mongodb
+const genreSchema = mongoose.Schema(
     {
-        id: 1,
-        name: 'Action'
-    },
-    {
-        id: 2,
-        name: 'Horror'
-    },
-    {
-        id: 3,
-        name: 'Romance'
-    },
-];
-router.get('/', (req, res) => {
+        name: {
+            type: String,
+            required: true,
+            minlength: 5,
+            maxlength: 50,
+            validate: {
+                validator: function (v) {
+                    /*
+                        Special Characters & digits are Not Allowed.
+                        Spaces are only allowed between two words.
+                        Only one space is allowed between two words.
+                        Spaces at the start or at the end are consider to be invalid.
+                    */
+                    const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)*$/ //Single word name is valid
+                    //const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)+$/; //Single word name as Dilshad is not valid but Dilshad Rana is valid
+                    return (v == null || v.trim().length < 1) || pattern.test(v);
+                },
+                message: 'Special character and digits are not allowed. Only once space is allowed between words. Single word name is valid but no spaces in the beginning or at the end.'
+            }
+        }
+    }
+);
+
+//Creating the schema to get a class
+const Genre = mongoose.model('Genre', genreSchema);
+
+//Get all the genres from the database.
+router.get('/', async (req, res) => {
+    const genres = await Genre.find().sort('name');
     res.send(genres);
 });
+
+//Create a new genre in the mongodb
+router.post('/', (req, res) => {
+    //const error = validateGenre(req.body);
+    //if (error) return res.status(400).send(error.details[0].message);
+    let genre = new Genre(
+        {
+            //id: genres.length + 1,//The next available id //In case of mongodb, id is alloted automatically.
+            name: req.body.name
+        }
+    );
+    genre.save()
+    .then(genre => res.send(genre))
+    .catch( err => res.status(400).send(err.message));
+    //genre = await genre.save();
+    //res.send(genre);
+});
+
+//put is used to update a resource in the mongodb
+router.put('/:id', (req, res) => {
+    /*     Genre.findByIdAndUpdate( req.params.id, 
+            {
+                name: req.body.name
+            },
+            {
+                new: true,
+                runValidators: true
+            }, (err, updatedGenre) => {
+                if(err) return res.status(404).send(`A genre with id: ${req.params.id} was not found in the MongoDB.`);
+                res.send(updatedGenre);
+            }
+        ); */
+    //Mosh's implementation' gives error ( "value" must be of type object ) when wrong id is used or validation fails.
+    Genre.findByIdAndUpdate( req.params.id,
+        {
+            name: req.body.name
+        },
+        {
+            new: true, //Default is false which returns the unmodified document but true returns the modified one.
+            runValidators: true
+        }
+    )
+    .then(modifiedGenre => res.send(modifiedGenre))
+    .catch(err => res.status(400).send(`Genre with id: ${req.params.id} was not updated. ${err.message}`));
+
+});
+
 function validateGenre(genre) {
     const schema = Joi.object({
         name: Joi.string().min(3).required()
@@ -27,32 +94,48 @@ function validateGenre(genre) {
     //If the input is valid then the error is undefined.
     return error;
 };
-//delete is used to delete a resouce
+
+//delete is used to delete a genre/resouce from the MongoDB
 router.delete('/:id', (req, res) => {
-    const video = genres.find(element => element.id === parseInt(req.params.id));
-    if (!video) return res.status(404).send(`Viswo with id ${req.params.id} does not exist.`);//If video is undefined
-    //Video exists; let's delete it.
-    const videoIndex = genres.findIndex(element => element.id === parseInt(req.params.id));
-    if (videoIndex !== -1) {//We have index of the course object in the array courses.
-        res.send(genres.splice(videoIndex, 1));//1 means delete one object from the array starting from courseIndex
-    }
+    Genre.findByIdAndDelete(req.params.id)
+    .then(deltedGenre => res.send(deltedGenre))
+    .catch(err => res.status(400).send(`Genre with id: ${req.params.id} was not deleted. ${err.message}`));
+/*     //If id of the item to be delted is not found, the postman/insomnia just hangs in Mosh code
+    const deletedGenre = await Genre.findByIdAndDelete(req.params.id);
+    if (!deletedGenre) return res.status(404).send(`Genre with id: ${rep.params.id} was not deleted/found!`);
+    res.send(deletedGenre); */
 });
+
+//Delete all genres from the MongoDB
+router.delete('/', (req, res) => {
+    //Genre.remove( {} ) //It works but is deprecated
+    Genre.deleteMany({})
+        .then(() => res.send("All genres deleted!"))
+        .catch(err => res.status(400).send(err.message));
+});
+
 
 router.get('/:id', (req, res) => {
-    const video = genres.find(element => element.id === parseInt(req.params.id));
-    if (video) return res.send(video);
-    res.status(404).send(`Video with id ${req.params.id} was not found!`);//Video is undefined case
+    Genre.findById(req.params.id, (err, genre) => {
+        if (err) return res.status(404).send(`Genre with id: ${req.params.id} was not found in the MongoDB!`);
+        res.send(genre);
+    });
+    //Mosh implemented as shown in the three lines below but they did not work in postaman with a wrong id or non-existing id.
+    //const genre = await Genre.findById(req.params.id);
+    //if(!genre) return res.status(404).send(`Genre with id: ${req.params.id} was not found in the MongoDB!`);
+    //res.send(genre);
 });
 
-router.get('/:year/:month', function (req, res) {
+/* router.get('/:year/:month', function (req, res) {
     res.send(req.params);//http://localhost:3000/api/videos/2020/January gives
-    /*     {
-            "year": "2020",
-            "month": "January"
-        } */
-});
-//////////////////////////////////////////////////////////////////////
-router.get('/:sortBy', (req, res) => {
+    //    {
+     //       "year": "2020",
+     //       "month": "January"
+     //   } 
+}); 
+*/
+
+/* router.get('/:sortBy', (req, res) => {
     const sortBy = req.query.sortBy;
     if(sortBy === 'asc'){
         res.send(genres.sort( (a, b) => a - b) );
@@ -61,27 +144,6 @@ router.get('/:sortBy', (req, res) => {
     }else{
         res.send("Give a sort order asc or des");
     }
-});
-router.post('/', (req, res) => {
-    const error = validateGenre(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-    const genre = {
-        id: genres.length + 1,
-        name: req.body.name
-    };
-    genres.push(genre);
-    res.send(genre);
-});
-//put is used to update a resource
-router.put('/:id', (req, res) => {
-    const genre = genres.find(element => element.id === parseInt(req.params.id));
-    if (!genre) return res.status(404).send(`The video with id ${req.params.id} was not found.`);
-    const error = validateGenre(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
-    genre.name = req.body.name;
-    const videoIndex = genres.findIndex(element => element.id === parseInt(req.params.id));
-    genres[videoIndex] = genre;
-    res.send(genre);
-});
+}); */
 
 module.exports = router;

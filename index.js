@@ -1,3 +1,5 @@
+//Load the mongoose module
+const mongoose = require('mongoose');
 const config = require('config');//The config package gives us an elegant way to store configuration settings for our app.
 require('dotenv').config();
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.
@@ -6,7 +8,9 @@ const dbDebugger = require('debug')('app:db');
 
 const logger = require('./middleware/logger');//custom middleware
 const authenticator = require('./middleware/authenticator');//custom middleware
+//Helmet is a collection of 14 smaller middleware functions that set HTTP response headers. https://www.npmjs.com/package/helmet
 const helmet = require('helmet');
+//morgan is HTTP request logger middleware for node.js https://www.npmjs.com/package/morgan 
 const morgan = require('morgan');
 const genres = require('./routes/genres');
 const home = require('./routes/home');
@@ -14,6 +18,12 @@ const home = require('./routes/home');
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
 const express = require('express');
 const app = express();
+
+//Connect to the monogodb called vidly
+mongoose.connect('mongodb://localhost/vidly')//If there is no database with this name, it will be created
+.then( () => console.log('Connected to database vidly...'))
+.catch( err => console.error('Could not connect to the MongoDB ...'));
+
 //If the request object has a json object, then the module express, which is a middleware, populates req.body property.
 // json() is a middleware in the express framework that is used to parse the body of requests with a JSON payload
 app.use(express.json());
@@ -23,7 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(helmet());
 app.use(morgan('tiny'));
-app.use('/api/genres', genres); //For any route that starts with /api/videos use the router videos.
+app.use('/api/genres', genres); //For any route that starts with /api/videos use the router genres.
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
 
 //Setting the pug package as our html template engine
