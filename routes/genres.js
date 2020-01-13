@@ -1,37 +1,7 @@
+const { Genre, validate } = require('../models/Genre');
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
-//The most powerful schema description language and data validator for JavaScript. https://hapi.dev/family/joi/ 
-const Joi = require('@hapi/joi');
-
-//Create a new schema for the Genre class.
-const genreSchema = mongoose.Schema(
-    {
-        name: {
-            type: String,
-            required: true,
-            minlength: 5,
-            maxlength: 50,
-            validate: {
-                validator: function (v) {
-                    /*
-                        Special Characters & digits are Not Allowed.
-                        Spaces are only allowed between two words.
-                        Only one space is allowed between two words.
-                        Spaces at the start or at the end are consider to be invalid.
-                    */
-                    const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)*$/ //Single word name is valid
-                    //const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)+$/; //Single word name as Dilshad is not valid but Dilshad Rana is valid
-                    return (v == null || v.trim().length < 1) || pattern.test(v);
-                },
-                message: 'Special character and digits are not allowed. Only once space is allowed between words. Single word name is valid but no spaces in the beginning or at the end.'
-            }
-        }
-    }
-);
-
-//Compiling the schema to get a class
-const Genre = mongoose.model('Genre', genreSchema);
 
 //Get all the genres from the database.
 router.get('/', async (req, res) => {
@@ -41,8 +11,10 @@ router.get('/', async (req, res) => {
 
 //Create a new genre in the mongodb
 router.post('/', (req, res) => {
-    //const error = validateGenre(req.body);
-    //if (error) return res.status(400).send(error.details[0].message);
+
+const error = validate(req.body);
+if(error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
+
     let genre = new Genre(
         {
             //id: genres.length + 1,//The next available id //In case of mongodb, id is alloted automatically.
@@ -70,7 +42,11 @@ router.put('/:id', (req, res) => {
                 res.send(updatedGenre);
             }
         ); */
-    //Mosh's implementation' gives error ( "value" must be of type object ) when wrong id is used or validation fails.
+    //The following implementation' gives error ( "value" must be of type object ) when wrong id is used or validation fails.
+
+    const error = validate(req.body);
+    if(error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the customer with the schema!");
+
     Genre.findByIdAndUpdate( req.params.id,
         {
             name: req.body.name
@@ -85,15 +61,7 @@ router.put('/:id', (req, res) => {
 
 });
 
-function validateGenre(genre) {
-    const schema = Joi.object({
-        name: Joi.string().min(3).required()
-    });
-    const { error } = schema.validate(genre);//Destructuring
-    //const { error, value } = schema.validate(genre);//Destructuring
-    //If the input is valid then the error is undefined.
-    return error;
-};
+
 
 //delete is used to delete a genre/resouce from the MongoDB
 router.delete('/:id', (req, res) => {
@@ -110,10 +78,9 @@ router.delete('/:id', (req, res) => {
 router.delete('/', (req, res) => {
     //Genre.remove( {} ) //It works but is deprecated
     Genre.deleteMany({})
-        .then(() => res.send("All genres deleted!"))
-        .catch(err => res.status(400).send(err.message));
+        .then(obj => res.send(`Number of genres in the database: ${obj.n} Number of genres Deleted: ${obj.deletedCount}`))
+        .catch(err => res.status(400).send(`The genres were not deleted. ${err.message}`));
 });
-
 
 router.get('/:id', (req, res) => {
     Genre.findById(req.params.id, (err, genre) => {

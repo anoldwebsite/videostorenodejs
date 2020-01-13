@@ -1,53 +1,7 @@
+const { Customer, validate } = require('../models/Customer');
 const mongooose = require('mongoose');
 const express = require('express');
-const Joi = require('@hapi/joi');//The most powerful schema description language and data validator for JavaScript. https://hapi.dev/family/joi/ 
 const router = express.Router();
-
-//Create a new Schema for the Customer class.
-const customerSchema = mongooose.Schema(
-    {
-        isGold: {
-            type: Boolean,
-            default: false
-        },
-        phone: {
-            type: String,
-            minlength: 10,
-            maxlength: 10,
-            required: true,
-            validate: {
-                validator: function (v) {
-                    const pattern = /^\d{10}$/;
-                    return (v == null || v.trim().length < 1) || pattern.test(v);
-                },
-                message: 'Telephone number is not valid.'
-            }
-        },
-        name: {
-            type: String,
-            required: true,
-            minlength: 4,
-            maxlength: 50,
-            validate: {
-                validator: function (v) {
-                    /*
-                        Special Characters & digits are Not Allowed.
-                        Spaces are only allowed between two words.
-                        Only one space is allowed between two words.
-                        Spaces at the start or at the end are consider to be invalid.
-                    */
-                    //const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)*$/ //Single word name is valid
-                    const pattern = /^[a-zA-z]+([\s][a-zA-Z]+)+$/; //Single word name as Dilshad is not valid but Dilshad Rana is valid
-                    return (v == null || v.trim().length < 1) || pattern.test(v);
-                },
-                message: 'Special character and digits are not allowed. Only once space is allowed between words. Single word name is not valid. No spaces in the beginning or at the end.'
-            }
-        }
-    }
-);
-
-//Compiling the schema to get a class Customer
-const Customer = mongooose.model('Customer', customerSchema);
 
 //Get all the customers from the database
 router.get('/', async (req, res) => {
@@ -72,6 +26,10 @@ router.get('/:id', async (req, res) => {
 
 //Edit an existing customer's data
 router.put('/:id', (req, res) => {
+
+     const error = validate(req.body);
+     if(error) return res.status(400).send("The customer could not be updated probably due to non-conformity of the customer with the schema!");
+
     Customer.findByIdAndUpdate(req.params.id,
         {
             name: req.body.name,
@@ -91,6 +49,10 @@ router.put('/:id', (req, res) => {
 
 //Create a new customer in the database
 router.post('/', (req, res) => {
+
+    const error = validate(req.body);
+    if(error) return res.status(400).send("A new customer could not be created probably due to non-conformity of the customer with the schema!");
+
     let customer = new Customer(
         {
             name: req.body.name,
@@ -113,7 +75,7 @@ router.delete('/:id', (req, res) => {
 router.delete('/', (req, res) => {
     Customer.deleteMany({})
         .then(obj => res.send(`Number of Customers in the database: ${obj.n} Number of Customers Deleted: ${obj.deletedCount}`))
-        .catch(err => res.status(400).send("The customers were not deleted."));
+        .catch(err => res.status(400).send(`The customers were not deleted. ${err.message}`));
 });
 
 module.exports = router;
