@@ -4,7 +4,7 @@ const router = express.Router();
 //The most powerful schema description language and data validator for JavaScript. https://hapi.dev/family/joi/ 
 const Joi = require('@hapi/joi');
 
-//Create a new schema for the mongodb
+//Create a new schema for the Genre class.
 const genreSchema = mongoose.Schema(
     {
         name: {
@@ -30,7 +30,7 @@ const genreSchema = mongoose.Schema(
     }
 );
 
-//Creating the schema to get a class
+//Compiling the schema to get a class
 const Genre = mongoose.model('Genre', genreSchema);
 
 //Get all the genres from the database.

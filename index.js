@@ -13,6 +13,7 @@ const helmet = require('helmet');
 //morgan is HTTP request logger middleware for node.js https://www.npmjs.com/package/morgan 
 const morgan = require('morgan');
 const genres = require('./routes/genres');
+const customers = require('./routes/customers');
 const home = require('./routes/home');
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
@@ -33,7 +34,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.use(helmet());
 app.use(morgan('tiny'));
+/* We tell express, that whereever you have the route that starts with /api/genres 
+you need to delegate the handling of those routes to the genres router that we get
+from this moudle. ./routes/genres */
 app.use('/api/genres', genres); //For any route that starts with /api/videos use the router genres.
+app.use('/api/customers', customers);
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
 
 //Setting the pug package as our html template engine
