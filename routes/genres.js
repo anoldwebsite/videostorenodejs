@@ -6,14 +6,30 @@ const router = express.Router();
 //Get all the genres from the database.
 router.get('/', async (req, res) => {
     const genres = await Genre.find().sort('name');
-    res.send(genres);
+    if (genres) res.send(genres);
+    else res.status(400).send(`Can't fetch data from the database. The request returned ${genres}`);
 });
 
 //Create a new genre in the mongodb
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
+    const error = validate(req.body);
+    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
 
-const error = validate(req.body);
-if(error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
+    try {
+        let genre = new Genre({
+            name: req.body.name
+        });
+        genre = await genre.save();
+        if (genre) res.send(genre);
+        else res.status(400).send(`New genre could not be created. The database returned ${genre}`);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
+});
+/* router.post('/', (req, res) => {
+
+    const error = validate(req.body);
+    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
 
     let genre = new Genre(
         {
@@ -22,32 +38,32 @@ if(error) return res.status(400).send("A new genre could not be created probably
         }
     );
     genre.save()
-    .then(genre => res.send(genre))
-    .catch( err => res.status(400).send(err.message));
-    //genre = await genre.save();
-    //res.send(genre);
-});
+        .then(genre => res.send(genre))
+        .catch(err => res.status(400).send(err.message));
+}); */
 
 //put is used to update a resource in the mongodb
-router.put('/:id', (req, res) => {
-    /*     Genre.findByIdAndUpdate( req.params.id, 
+router.put('/:id', async (req, res) => {
+    const error = validate(req.body);
+    if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the customer with the schema!");
+    try {
+        const genre = await Genre.findByIdAndUpdate(req.params.id,
             {
                 name: req.body.name
             },
             {
-                new: true,
+                new: true, //Default is false which returns the unmodified document but true returns the modified one.
                 runValidators: true
-            }, (err, updatedGenre) => {
-                if(err) return res.status(404).send(`A genre with id: ${req.params.id} was not found in the MongoDB.`);
-                res.send(updatedGenre);
             }
-        ); */
-    //The following implementation' gives error ( "value" must be of type object ) when wrong id is used or validation fails.
+        );
+        if (genre) res.send(genre);
+        else res.status(400).send(`Genre with id: ${re.params.id} was not updated. The update request returned ${genre}.`);
 
-    const error = validate(req.body);
-    if(error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the customer with the schema!");
-
-    Genre.findByIdAndUpdate( req.params.id,
+    } catch (error) {
+        res.status(400).send(`Genre with id: ${req.params.id} was not updated. ${error.message}`);
+    }
+});
+/*     Genre.findByIdAndUpdate( req.params.id,
         {
             name: req.body.name
         },
@@ -59,38 +75,47 @@ router.put('/:id', (req, res) => {
     .then(modifiedGenre => res.send(modifiedGenre))
     .catch(err => res.status(400).send(`Genre with id: ${req.params.id} was not updated. ${err.message}`));
 
-});
+}); */
 
 
 
 //delete is used to delete a genre/resouce from the MongoDB
-router.delete('/:id', (req, res) => {
-    Genre.findByIdAndDelete(req.params.id)
-    .then(deltedGenre => res.send(deltedGenre))
-    .catch(err => res.status(400).send(`Genre with id: ${req.params.id} was not deleted. ${err.message}`));
-/*     //If id of the item to be delted is not found, the postman/insomnia just hangs in Mosh code
-    const deletedGenre = await Genre.findByIdAndDelete(req.params.id);
-    if (!deletedGenre) return res.status(404).send(`Genre with id: ${rep.params.id} was not deleted/found!`);
-    res.send(deletedGenre); */
+router.delete('/:id', async (req, res) => {
+    try {
+        const genre = await Genre.findByIdAndDelete(req.params.id);
+        if (genre) res.send(genre);
+        else res.status(404).send(`Genre with id: ${req.params.id} was not deleted. The database returned ${genre}.`);
+    } catch (error) {
+        res.status(400).send(`Genre with id: ${req.params.id} was not deleted. ${error.message}`);
+    }
 });
 
 //Delete all genres from the MongoDB
-router.delete('/', (req, res) => {
+router.delete('/', async (req, res) => {
+    //Genre.remove( {} ) //It works but is deprecated
+    try {
+        const genres = await Genre.deleteMany({});
+        if (genres) res.send(`Number of genres in the database: ${genres.n} Number of genres Deleted: ${genres.deletedCount}`);
+        else res.status(400).send(`Genres were not deleted. The database returned ${genres}.`);
+    } catch (error) {
+        res.status(400).send(`The genres were not deleted. ${error.message}`);
+    }
+});
+/* router.delete('/', (req, res) => {
     //Genre.remove( {} ) //It works but is deprecated
     Genre.deleteMany({})
         .then(obj => res.send(`Number of genres in the database: ${obj.n} Number of genres Deleted: ${obj.deletedCount}`))
         .catch(err => res.status(400).send(`The genres were not deleted. ${err.message}`));
-});
-
-router.get('/:id', (req, res) => {
-    Genre.findById(req.params.id, (err, genre) => {
-        if (err) return res.status(404).send(`Genre with id: ${req.params.id} was not found in the MongoDB!`);
-        res.send(genre);
-    });
-    //Mosh implemented as shown in the three lines below but they did not work in postaman with a wrong id or non-existing id.
-    //const genre = await Genre.findById(req.params.id);
-    //if(!genre) return res.status(404).send(`Genre with id: ${req.params.id} was not found in the MongoDB!`);
-    //res.send(genre);
+}); */
+//Get genre with the given id
+router.get('/:id', async (req, res) => {
+    try {
+        const genre = await Genre.findById(req.params.id);
+        if (genre) res.send(genre);
+        else res.status(400).send(`Genre with id: ${req.params.id} was not found. The database returned ${genre}.`);
+    } catch (error) {
+        res.status(400).send(error.message);
+    }
 });
 
 /* router.get('/:year/:month', function (req, res) {
@@ -101,16 +126,5 @@ router.get('/:id', (req, res) => {
      //   } 
 }); 
 */
-
-/* router.get('/:sortBy', (req, res) => {
-    const sortBy = req.query.sortBy;
-    if(sortBy === 'asc'){
-        res.send(genres.sort( (a, b) => a - b) );
-    }else if( sortBy === 'des'){
-        res.send(genres.sort( (a, b) => b - a ) );
-    }else{
-        res.send("Give a sort order asc or des");
-    }
-}); */
 
 module.exports = router;
