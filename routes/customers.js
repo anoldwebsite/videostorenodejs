@@ -1,5 +1,4 @@
 const { Customer, validate } = require('../models/Customer');
-const mongooose = require('mongoose');
 const express = require('express');
 const router = express.Router();
 
@@ -134,7 +133,7 @@ router.delete('/', async (req, res) => {
     try {
         const customers = await Customer.deleteMany({});
         if(customers) res.send(`Number of Customers in the database: ${obj.n} Number of Customers Deleted: ${obj.deletedCount}`);
-        else res.status(400).send(`No customers were deleted! The request for deltion all customers returned ${customers}`);
+        else res.status(400).send(`No customers were deleted! The request for deletion of all customers returned ${customers}`);
     } catch (error) {
         res.status(400).send(`The customers were NOT deleted. ${error.message}`);
     }
