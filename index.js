@@ -15,6 +15,7 @@ const morgan = require('morgan');
 const genres = require('./routes/genres');
 const customers = require('./routes/customers');
 const movies = require('./routes/movies');
+const rentals = require('./routes/rentals');
 const home = require('./routes/home');
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
@@ -23,8 +24,8 @@ const app = express();
 
 //Connect to the monogodb called vidly
 mongoose.connect('mongodb://localhost/vidly')//If there is no database with this name, it will be created
-.then( () => console.log('Connected to database vidly...'))
-.catch( err => console.error('Could not connect to the MongoDB ...'));
+    .then(() => console.log('Connected to database vidly...'))
+    .catch(err => console.error('Could not connect to the MongoDB ...'));
 
 //If the request object has a json object, then the module express, which is a middleware, populates req.body property.
 // json() is a middleware in the express framework that is used to parse the body of requests with a JSON payload
@@ -40,7 +41,8 @@ you need to delegate the handling of those routes to the genres router that we g
 from this moudle. ./routes/genres */
 app.use('/api/genres', genres); //For any route that starts with /api/genres use the router genres.
 app.use('/api/customers', customers);
-app.use('/api/movies', movies)
+app.use('/api/movies', movies);
+app.use('/api/rentals', rentals);
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
 
 //Setting the pug package as our html template engine
@@ -62,7 +64,7 @@ console.log(`app: ${app.get('env')}`);//Getting the environement variable proces
 */
 //To enable logging of http requests only on the development machines
 //We can detect the environment in which our Node application is running (development or production, etc) using app.get('env') or process.env.NODE_ENV
-if(app.get('env') === 'development'){
+if (app.get('env') === 'development') {
     app.use(morgan('tiny'));
     startupDebugger('Morgan enabled for logging http requests only in the development mode.');
 }
