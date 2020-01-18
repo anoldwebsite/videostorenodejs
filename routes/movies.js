@@ -31,17 +31,25 @@ router.post('/', async (req, res) => {
     if (error) {
         return res.status(400).send("New movie could not be created in the database due to the non-conformity of the customer with the schema!");
     }
-    let movie = new Movie(
-        {
-            title: req.body.title,
-            genre: new Genre({ name: req.body.genre }),
-            numberInStock: req.body.numberInStock,
-            dailyRentalRate: req.body.dailyRentalRate
-        }
-    );
+
     try {
-        const newMovie = await movie.save();
-        if (newMovie) res.send(newMovie);
+        const genre = await Genre.findById(req.body.genreId);
+        if(!genre) return res.status(400).send('Invalid genre');
+
+        let movie = new Movie(
+            {
+                title: req.body.title,
+                genre: {
+                    _id: genre._id,
+                    name: genre.name
+                },
+                //genre: new Genre({ name: req.body.genre }),
+                numberInStock: req.body.numberInStock,
+                dailyRentalRate: req.body.dailyRentalRate
+            }
+        );
+        movie = await movie.save();
+        if (movie) res.send(movie);
         else res.status(400).send(error.message);
     } catch (error) {
         console.error(error);
@@ -56,12 +64,22 @@ router.put('/:id', async (req, res) => {
         return res.status(400).send("The data of the movie could not be updated due to the non-conformity of the data with the schema as checked by Joi");
     }
     try {
-        console.log("************ Inside try ****************");
+        const genre = await Genre.findById(req.body.genreId);
+        if(!genre) return res.status(400).send('Invalid genre.');
+
         const movie = await Movie.findByIdAndUpdate(
             req.params.id,
             {
                 title: req.body.title,
-                genre: new Genre({ name: req.body.genre }),
+                genre: {
+                    _id: genre._id,
+                    name: genre.name
+                    /* We did not do genre = genre because in the MongoDB database vidly, 
+                    collection genre there are three fields _id, name and __v inserted automatically
+                    by MongoDB and we do not want to miss up with that, so we create a genre object here.
+                    */
+                },
+                //genre: new Genre({ name: req.body.genre }),
                 numberInStock: req.body.numberInStock,
                 dailyRentalRate: req.body.dailyRentalRate
             },
