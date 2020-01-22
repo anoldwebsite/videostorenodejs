@@ -1,5 +1,6 @@
 //Load the mongoose module
 const mongoose = require('mongoose');
+mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 const config = require('config');//The config package gives us an elegant way to store configuration settings for our app.
 require('dotenv').config();
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.

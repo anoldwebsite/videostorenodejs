@@ -1,5 +1,4 @@
 const { Genre, validate } = require('../models/Genre');
-const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
 
@@ -26,21 +25,6 @@ router.post('/', async (req, res) => {
         res.status(400).send(error.message);
     }
 });
-/* router.post('/', (req, res) => {
-
-    const error = validate(req.body);
-    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
-
-    let genre = new Genre(
-        {
-            //id: genres.length + 1,//The next available id //In case of mongodb, id is alloted automatically.
-            name: req.body.name
-        }
-    );
-    genre.save()
-        .then(genre => res.send(genre))
-        .catch(err => res.status(400).send(err.message));
-}); */
 
 //put is used to update a resource in the mongodb
 router.put('/:id', async (req, res) => {
@@ -63,21 +47,6 @@ router.put('/:id', async (req, res) => {
         res.status(400).send(`Genre with id: ${req.params.id} was not updated. ${error.message}`);
     }
 });
-/*     Genre.findByIdAndUpdate( req.params.id,
-        {
-            name: req.body.name
-        },
-        {
-            new: true, //Default is false which returns the unmodified document but true returns the modified one.
-            runValidators: true
-        }
-    )
-    .then(modifiedGenre => res.send(modifiedGenre))
-    .catch(err => res.status(400).send(`Genre with id: ${req.params.id} was not updated. ${err.message}`));
-
-}); */
-
-
 
 //delete is used to delete a genre/resouce from the MongoDB
 router.delete('/:id', async (req, res) => {
@@ -101,12 +70,7 @@ router.delete('/', async (req, res) => {
         res.status(400).send(`The genres were not deleted. ${error.message}`);
     }
 });
-/* router.delete('/', (req, res) => {
-    //Genre.remove( {} ) //It works but is deprecated
-    Genre.deleteMany({})
-        .then(obj => res.send(`Number of genres in the database: ${obj.n} Number of genres Deleted: ${obj.deletedCount}`))
-        .catch(err => res.status(400).send(`The genres were not deleted. ${err.message}`));
-}); */
+
 //Get genre with the given id
 router.get('/:id', async (req, res) => {
     try {
@@ -117,14 +81,5 @@ router.get('/:id', async (req, res) => {
         res.status(400).send(error.message);
     }
 });
-
-/* router.get('/:year/:month', function (req, res) {
-    res.send(req.params);//http://localhost:3000/api/videos/2020/January gives
-    //    {
-     //       "year": "2020",
-     //       "month": "January"
-     //   } 
-}); 
-*/
 
 module.exports = router;

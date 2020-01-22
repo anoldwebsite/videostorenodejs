@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 
     try {
         const genre = await Genre.findById(req.body.genreId);
-        if(!genre) return res.status(400).send('Invalid genre');
+        if (!genre) return res.status(400).send('Invalid genre');
 
         let movie = new Movie(
             {
@@ -65,7 +65,7 @@ router.put('/:id', async (req, res) => {
     }
     try {
         const genre = await Genre.findById(req.body.genreId);
-        if(!genre) return res.status(400).send('Invalid genre.');
+        if (!genre) return res.status(400).send('Invalid genre.');
 
         const movie = await Movie.findByIdAndUpdate(
             req.params.id,
@@ -99,10 +99,10 @@ router.put('/:id', async (req, res) => {
     }
 });
 //Delete one movie the id of which is given 
-router.delete('/:id', async(req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const movie = await Movie.findByIdAndDelete(req.params.id);
-        if(movie) res.send(`Deleted movie, details of which are: ${movie}`);
+        if (movie) res.send(`Deleted movie, details of which are: ${movie}`);
         else res.status(404).send(`Movie with id: ${req.params.id} could not be deleted from the database. The database returned ${error.message}`);
     } catch (error) {
         res.status(404).send(`Movie with id: ${req.params.id} could not be deleted from the database. The database returned ${error.message}`);
@@ -112,7 +112,7 @@ router.delete('/:id', async(req, res) => {
 router.delete('/', async (req, res) => {
     try {
         const movies = await Movie.deleteMany({});
-        if(movies) res.send('All the movies in the database have been delted!');
+        if (movies) res.send('All the movies in the database have been delted!');
         else res.status(400).send(`No movies were deleted! The request for deletion of all movies returned ${movies}`);
     } catch (error) {
         res.status(400).send(error.message);

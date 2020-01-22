@@ -13,7 +13,7 @@ const customerSchema = mongooose.Schema({
     maxlength: 10,
     required: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         const pattern = /^\d{10}$/;
         return v == null || v.trim().length < 1 || pattern.test(v);
       },
@@ -26,7 +26,7 @@ const customerSchema = mongooose.Schema({
     minlength: 4,
     maxlength: 50,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         /*
                         Special Characters & digits are Not Allowed.
                         Spaces are only allowed between two words.
@@ -40,7 +40,13 @@ const customerSchema = mongooose.Schema({
       message:
         'Special character and digits are not allowed. Only once space is allowed between words. Single word name is not valid. No spaces in the beginning or at the end.'
     }
-  }
+  },
+  numberOfMoviesRented: {
+    type: Number,
+    min: 0,
+    max: 10
+  },
+  pendingTransactions: []
 });
 
 //Compiling the schema to get a class Customer
@@ -54,7 +60,9 @@ function validateCustomer(customer) {
     phone: Joi.string()
       .min(10)
       .max(13),
-    isGold: Joi.boolean()
+    isGold: Joi.boolean(),
+    numberOfMoviesRented: Joi.number().min(0).max(10),
+    pendingTransactions: Joi.array()
   });
   const { error } = schema.validate(customer); //Destructuring
   //const { error, value } = schema.validate(genre);//Destructuring

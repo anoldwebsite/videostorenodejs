@@ -6,7 +6,6 @@ router.get('/', (req, res) => {
         title: "My Express App",
         message: "Welcome to the largest collection of movies online!"
     })
-    //res.send("I am tired of writing Hello World Programs!");
 });
 
 module.exports = router;

@@ -29,7 +29,8 @@ const Rental = mongoose.model(
           maxlength: 50
         }
       }),
-      required: true
+      required: true,
+      pendingTransactions: []
     },
     movie: {
       type: new mongoose.Schema({
@@ -47,16 +48,25 @@ const Rental = mongoose.model(
           max: 255
         }
       }),
-      required: true
+      required: true,
+      pendingTransactions: []
     },
     dateOut: {
       type: Date,
-      required: true,
-      default: Date.now
+      //required: true,
+      //default: Date.now
     },
     dateReturned: {
       type: Date
       //We can not set required to true or default date as during the creation of Rental Class or an instance of Rental we do not have this field set. This field is set when a customer returns the movie.
+    },
+    rentalType: {
+      type: String,
+      required: true,
+      enum: ['borrow', 'return'],
+      //default: 'borrow',
+      lowercase: true,
+      trim: true
     },
     rentalFee: {
       type: Number,
@@ -68,7 +78,8 @@ function validateRental(rental) {
   //rental = req.body
   const schema = Joi.object({
     customerId: Joi.string().required(),
-    movieId: Joi.string().required()
+    movieId: Joi.string().required(),
+    rentalType: Joi.string().required()
   });
   const { error } = schema.validate(rental);
   console.log(error);

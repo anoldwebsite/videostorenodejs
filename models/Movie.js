@@ -28,14 +28,15 @@ const movieSchema = mongoose.Schema(
             type: Number,
             required: true,
             min: 0,
-            max: 255
+            max: 10
         },
         dailyRentalRate: {
             type: Number,
             required: true,
             min: 0,
             max: 255
-        }
+        },
+        pendingTransactions: []
     }
 );//movieSchema definition ends here.
 
@@ -52,7 +53,7 @@ function validateMovie(movie) {//movie = req.body
             genre: Joi.object({
                             name: Joi.string().min(3).required()
                         }), */
-            numberInStock: Joi.number().min(0).required(),
+            numberInStock: Joi.number().min(0).max(10).required(),
             dailyRentalRate: Joi.number().min(0).required()
         }
     );
