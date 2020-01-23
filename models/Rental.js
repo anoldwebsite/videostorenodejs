@@ -20,7 +20,7 @@ const Rental = mongoose.model(
         },
         isGold: {
           type: Boolean,
-          default: true
+          default: true//Does not work. Always sets to false if not taken value from req.body.isGold
         },
         phone: {
           type: String,

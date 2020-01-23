@@ -83,8 +83,8 @@ router.post('/', async (req, res) => {
             _id: customer._id,
             name: customer.name,
             phone: customer.phone,
-            //isGold: true,//Does not work.Always False
-            isGold: customer.isGold, //Does not work
+            isGold: true,//Does not work. Always sets to false if not taken value from req.body.isGold
+            //isGold: customer.isGold, //Does not work
             $push: { pendingTransactions: transaction._id }
         },
         movie: {
@@ -95,13 +95,14 @@ router.post('/', async (req, res) => {
         },
         rentalType: req.body.rentalType,
     });
-    //rental.customer.isGold = true; //Doesn't work. False
+    //rental.customer.isGold = true; //Does not work. Always sets to false if not taken value from req.body.isGold
+    if (req.body.rentalType === 'borrow') rental.dateOut = Date.now();
+    if (req.body.rentalType === 'return') rental.dateReturned = Date.now();
     rental = await rental.save();
     if (!rental) {
         rollBackTransaction(movie, customer, transaction, transactionType, rental);
         return res.status(400).send('Something went wrong! The Rental object could not be saved!');
     }
-    rental = await setRentalTypeInRental(rental, req, res, movie, customer, transaction, transactionType);
 
     //Update the status property of the Transaction object from "pending" to "applied".
     transaction = await Transaction.findByIdAndUpdate(
@@ -228,26 +229,6 @@ async function getMovie(req, res, transaction) {
     return movie;
 };
 
-async function setRentalTypeInRental(rental, req, res, movie, customer, transaction, transactionType) {
-    let rentalChanged;
-    try {
-        rentalChanged = await Rental.findById(rental._id);
-    } catch (error) {
-        console.error(error);
-    }
-
-    if (rentalChanged) {
-        if (req.body.rentalType === 'borrow') rentalChanged.dateOut = Date.now();
-        if (req.body.rentalType === 'return') rentalChanged.dateReturned = Date.now();
-    }
-    rentalChanged = await rental.save();
-    if (!rentalChanged) {
-        rollBackTransaction(movie, customer, transaction, transactionType, rental);
-        return res.status(400).send('Something went wrong! The Rental object could not be saved!');
-    }
-    return rentalChanged;
-};
-
 async function updateTransactionState(transaction, transcationState, res) {
     let transactonChanged;
     try {
@@ -309,7 +290,6 @@ async function changeTransactionStatusToCancelled(transaction) {
         }
     );
 };
-
 
 async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
     let rental;
