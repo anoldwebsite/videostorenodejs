@@ -77,33 +77,7 @@ router.post('/', async (req, res) => {
     }
 
     //Create a new rental object
-    //let rental = await createRental(customer, movie, transaction, req); does not work. why?
-    let rental = new Rental({
-        customer: {
-            _id: customer._id,
-            name: customer.name,
-            phone: customer.phone,
-            isGold: true,//Does not work. Always sets to false if not taken value from req.body.isGold
-            //isGold: customer.isGold, //Does not work
-            $push: { pendingTransactions: transaction._id }
-        },
-        movie: {
-            _id: movie._id,
-            title: movie.title,
-            dailyRentalRate: movie.dailyRentalRate,
-            $push: { pendingTransactions: transaction._id }
-        },
-        rentalType: req.body.rentalType,
-    });
-    //rental.customer.isGold = true; //Does not work. Always sets to false if not taken value from req.body.isGold
-    if (req.body.rentalType === 'borrow') rental.dateOut = Date.now();
-    if (req.body.rentalType === 'return') rental.dateReturned = Date.now();
-    rental = await rental.save();
-    if (!rental) {
-        rollBackTransaction(movie, customer, transaction, transactionType, rental);
-        return res.status(400).send('Something went wrong! The Rental object could not be saved!');
-    }
-
+    let rental = await createRental(customer, movie, transaction, req);
     //Update the status property of the Transaction object from "pending" to "applied".
     transaction = await Transaction.findByIdAndUpdate(
         transaction._id,
@@ -308,5 +282,33 @@ async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
         console.error(error);
     }
 };
+async function createRental(customer, movie, transaction, req) {
+    let rental = new Rental({
+        customer: {
+            _id: customer._id,
+            name: customer.name,
+            phone: customer.phone,
+            isGold: true,//Does not work. Always sets to false if not taken value from req.body.isGold
+            //isGold: customer.isGold, //Does not work
+            $push: { pendingTransactions: transaction._id }
+        },
+        movie: {
+            _id: movie._id,
+            title: movie.title,
+            dailyRentalRate: movie.dailyRentalRate,
+            $push: { pendingTransactions: transaction._id }
+        },
+        rentalType: req.body.rentalType,
+    });
+    //rental.customer.isGold = true; //Does not work. Always sets to false if not taken value from req.body.isGold
+    if (req.body.rentalType === 'borrow') rental.dateOut = Date.now();
+    if (req.body.rentalType === 'return') rental.dateReturned = Date.now();
+    rental = await rental.save();
+    if (!rental) {
+        rollBackTransaction(movie, customer, transaction, transactionType, rental);
+        return res.status(400).send('Something went wrong! The Rental object could not be saved!');
+    }
+    return rental;
+}
 
 module.exports = router;
