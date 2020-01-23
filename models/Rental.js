@@ -78,8 +78,8 @@ function validateRental(rental) {
   //rental = req.body
   const schema = Joi.object({
     customerId: Joi.string().required(),
-    movieId: Joi.string().required(),
-    rentalType: Joi.string().required()
+    rentalType: Joi.string().required(),
+    movieId: Joi.string().required()
   });
   const { error } = schema.validate(rental);
   console.log(error);

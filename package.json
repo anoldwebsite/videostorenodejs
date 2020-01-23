@@ -18,7 +18,8 @@
     "helmet": "^3.21.2",
     "mongoose": "^5.8.7",
     "morgan": "^1.9.1",
-    "pug": "^2.0.4"
+    "pug": "^2.0.4",
+    "run-rs": "^0.6.2"
   },
   "devDependencies": {
     "jshint": "^2.11.0-rc1"
