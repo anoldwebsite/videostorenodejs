@@ -1,4 +1,5 @@
 const { Rental, validateRental } = require('../models/Rental');
+const { Transaction } = require('../models/Transaction');
 const { Customer } = require('../models/Customer');
 const { Movie } = require('../models/Movie');
 const mongoose = require('mongoose');
@@ -77,12 +78,25 @@ router.post('/', async (req, res) => {
         movie.save();
         customer.save();
         rental = await rental.save();
+        const transaction = await createTransaction(req, res);
         await session.commitTransaction();
-        //session.endSession();
-        return res.send(rental);
+        if (rental && transaction) {
+            return res.send(
+                `
+                        You ${req.body.rentalType}ed: 
+
+                        ${rental}
+
+                        ***********************************************
+
+                        Transaction Details: 
+                        
+                        ${transaction}
+                    `
+            );
+        }
     } catch (err) {
         await session.abortTransaction();
-        //session.endSession();
         console.log(err);
         return res.status(500).send(err.message);
     } finally {
@@ -114,5 +128,30 @@ async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
         console.error(error);
     }
 };
-
+async function createTransaction(req, res) {
+    let transaction;
+    //Create a new transaction and set its state to "done"
+    if (req.body.rentalType === 'borrow') {
+        transaction = new Transaction({
+            source: req.body.movieId,
+            destination: req.body.customerId,
+            state: 'done',
+            transactiontype: req.body.rentalType
+        });
+    } else if (req.body.rentalType === 'return') {
+        transaction = new Transaction({
+            source: req.body.customerId,
+            destination: req.body.movieId,
+            state: 'done',
+            transactiontype: req.body.rentalType
+        });
+    }
+    try {
+        transaction = await transaction.save();
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send(`Something is not working right now. Try later please! ${error.message}`);
+    }
+    return transaction;
+};
 module.exports = router; 
