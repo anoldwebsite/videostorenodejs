@@ -15,10 +15,10 @@ router.post('/', async (req, res) => {
     if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
 
     try {
-        let genre = new Genre({
+        const genre = new Genre({
             name: req.body.name
         });
-        genre = await genre.save();
+        await genre.save();
         if (genre) res.send(genre);
         else res.status(400).send(`New genre could not be created. The database returned ${genre}`);
     } catch (error) {

@@ -77,7 +77,7 @@ router.post('/', async (req, res) => {
   const error = validate(req.body);
   if (error) return res.status(400).send('A new customer could not be created probably due to non-conformity of the customer with the schema!');
 
-  let customer = new Customer({
+  const customer = new Customer({
     name: req.body.name,
     phone: req.body.phone,
     isGold: req.body.isGold,
@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
     pendingTransactions: req.body.pendingTransactions
   });
   try {
-    customer = await customer.save();
+    await customer.save();
     if (customer) res.send(customer);
     else res.status(400).send(err.message);
   } catch (error) {

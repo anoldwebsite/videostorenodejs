@@ -2,13 +2,12 @@ const { Rental, validateRental } = require('../models/Rental');
 const { Transaction } = require('../models/Transaction');
 const { Customer } = require('../models/Customer');
 const { Movie } = require('../models/Movie');
-const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
-    if(rentals) res.send(rentals);
+    if (rentals) res.send(rentals);
 });
 
 router.post('/', async (req, res) => {
@@ -44,7 +43,7 @@ router.post('/', async (req, res) => {
 
     //The customer has not borrowed this movie. The business rule of this compan allows borrowing only one copy of a movie.
 
-    let rental = new Rental({
+    const rental = new Rental({
         customer: {
             _id: customer._id,
             name: customer.name,
@@ -57,7 +56,7 @@ router.post('/', async (req, res) => {
         },
         rentalType: req.body.rentalType,
     });
-
+    //Atomic transactions implementation.
     const session = await Rental.startSession();
     if (session) session.startTransaction();
     try {
@@ -82,9 +81,9 @@ router.post('/', async (req, res) => {
                 }
             }
         }
-        movie.save();
-        customer.save();
-        rental = await rental.save();
+        await movie.save();
+        await customer.save();
+        await rental.save();
         const transaction = await createTransaction(req, res);
         await session.commitTransaction();
         if (rental && transaction) {
@@ -109,7 +108,7 @@ router.post('/', async (req, res) => {
     } finally {
         session.endSession();
     }
-    res.send(rental);
+    res.status(400).send("There is some problem!. You can't rent/return a movie now.");
 });
 
 router.get('/:id', async (req, res) => {
@@ -136,29 +135,30 @@ async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
     }
 };
 async function createTransaction(req, res) {
-    let transaction;
     //Create a new transaction and set its state to "done"
     if (req.body.rentalType === 'borrow') {
-        transaction = new Transaction({
-            source: req.body.movieId,
-            destination: req.body.customerId,
-            state: 'done',
-            transactiontype: req.body.rentalType
-        });
+        const transaction = new Transaction(
+            {
+                source: req.body.movieId,
+                destination: req.body.customerId,
+                state: 'done',
+                transactiontype: req.body.rentalType
+            }
+        );
+        await transaction.save();
+        if (transaction) return transaction;
     } else if (req.body.rentalType === 'return') {
-        transaction = new Transaction({
-            source: req.body.customerId,
-            destination: req.body.movieId,
-            state: 'done',
-            transactiontype: req.body.rentalType
-        });
+        const transaction = new Transaction(
+            {
+                source: req.body.customerId,
+                destination: req.body.movieId,
+                state: 'done',
+                transactiontype: req.body.rentalType
+            }
+        );
+        await transaction.save();
+        if (transaction) return transaction;
     }
-    try {
-        transaction = await transaction.save();
-    } catch (error) {
-        console.error(error);
-        return res.status(400).send(`Something is not working right now. Try later please! ${error.message}`);
-    }
-    return transaction;
+    return res.status(400).send(`Something is not working right now. Try later please! ${error.message}`);
 };
 module.exports = router; 

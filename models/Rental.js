@@ -1,8 +1,5 @@
 const Joi = require('@hapi/joi');
 const mongoose = require('mongoose');
-//Joi.objectId is a mthod on this Joi object. The result of require('joi-objectid') is a function, so we will pass Joi as parameter to this function.
-Joi.objectId = require('joi-objectid')(Joi);
-
 /*
 We are not using schema from the Customer.js here as a customer in that schema might have e.g., 50 properties
 and we do not need them for Rental class. We are interested in a few properties, so we are defining

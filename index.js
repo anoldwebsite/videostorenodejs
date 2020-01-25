@@ -1,3 +1,6 @@
+const Joi = require('@hapi/joi');
+//Joi.objectId is a mthod on this Joi object. The result of require('joi-objectid') is a function, so we will pass Joi as parameter to this function.
+Joi.objectId = require('joi-objectid')(Joi);
 //Load the mongoose module
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
@@ -24,7 +27,7 @@ const express = require('express');
 const app = express();
 
 //Connect to the monogodb called vidly
-mongoose.connect('mongodb://localhost/vidly', {useNewUrlParser: true, useUnifiedTopology: true})//If there is no database with this name, it will be created
+mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
     .then(() => console.log('Connected to database vidly...'))
     .catch(err => console.error('Could not connect to the MongoDB ...'));
 
