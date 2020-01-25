@@ -3,7 +3,8 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 //Load the mongoose module
 const mongoose = require('mongoose');
-mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
+mongoose.set('useFindAndModify', false,);//https://mongoosejs.com/docs/deprecations.html
+mongoose.set('useCreateIndex', true);
 const config = require('config');//The config package gives us an elegant way to store configuration settings for our app.
 require('dotenv').config();
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.
@@ -20,6 +21,7 @@ const genres = require('./routes/genres');
 const customers = require('./routes/customers');
 const movies = require('./routes/movies');
 const rentals = require('./routes/rentals');
+const users = require('./routes/users');
 const home = require('./routes/home');
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
@@ -47,6 +49,7 @@ app.use('/api/genres', genres); //For any route that starts with /api/genres use
 app.use('/api/customers', customers);
 app.use('/api/movies', movies);
 app.use('/api/rentals', rentals);
+app.use('/api/users', users);
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
 
 //Setting the pug package as our html template engine
