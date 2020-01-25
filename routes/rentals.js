@@ -15,8 +15,15 @@ router.post('/', async (req, res) => {
     const error = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
+    /* 
+    What if the customerId or movieId supplied by the user is invalid. 
+    //We can do the same validation in our metho validateRental using an npm package joi-objectid which is installed if we write on terminal npm i joi-objectid --save
+    if (!mongoose.Types.ObjectId.isValid(req.body.customerId)) return res.status(400).send(`Customer Id: ${req.body.customerId} is invalid!`);
+    if (!mongoose.Types.ObjectId.isValid(req.body.movieId)) return res.status(400).send(`Movie id: ${req.body.movieId} is invalid!`);
+    */
+
     const customer = await Customer.findById(req.body.customerId);
-    if (!customer) return res.status(400).send('Invalid customer.');
+    if (!customer) return res.status(400).send('Invalid customer. Customer not found in the database!');
 
     const movie = await Movie.findById(req.body.movieId);
     if (!movie) return res.status(400).send('Invalid movie.');

@@ -1,5 +1,7 @@
 const Joi = require('@hapi/joi');
 const mongoose = require('mongoose');
+//Joi.objectId is a mthod on this Joi object. The result of require('joi-objectid') is a function, so we will pass Joi as parameter to this function.
+Joi.objectId = require('joi-objectid')(Joi);
 
 /*
 We are not using schema from the Customer.js here as a customer in that schema might have e.g., 50 properties
@@ -77,9 +79,9 @@ const Rental = mongoose.model(
 function validateRental(rental) {
   //rental = req.body
   const schema = Joi.object({
-    customerId: Joi.string().required(),
-    rentalType: Joi.string().required(),
-    movieId: Joi.string().required()
+    customerId: Joi.objectId().required(),
+    movieId: Joi.objectId().required(),
+    rentalType: Joi.string().required()
   });
   const { error } = schema.validate(rental);
   console.log(error);
