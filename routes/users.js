@@ -3,6 +3,9 @@ const { User, validate } = require('../models/User');
 const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const config = require('config');
+const jwt = require('jsonwebtoken');
 
 //Create a new User
 router.post('/', async (req, res) => {
@@ -10,7 +13,7 @@ router.post('/', async (req, res) => {
     if (error) return res.status(400).send(`A new user could not be created. ${error.details[0].message}`);
     //Check if a user with this email is already registered.
     let user = await User.findOne(
-        { 
+        {
             email: req.body.email
         }
     );
@@ -25,9 +28,13 @@ router.post('/', async (req, res) => {
         }
     ); //This is how we did it before using the library lodash
     */
+    if (!user) return res.status(400).send(`A user with email ${req.body.email} could not be created now. Please try later!`);
+    const salt = await bcrypt.genSalt(10);//10 is a salt. The bigger the number, the greater the time it takes to generate salt and the harder is the passwrod to crack
+    user.password = await bcrypt.hash(user.password, salt);
     await user.save();
+    const token = user.generateAuthToken();//generateAuthToken is a method in the schema of the class User in User.js
     //We don't want to return the password field, so we are using  a library lodash to selectively return some fields of the object user.
-    if (user) res.send(lodash.pick(user, ['id', 'name', 'email']));
+    if (user) res.header('x-auth-token', token).send(lodash.pick(user, ['id', 'name', 'email']));//Do not print the  password. Just print id name and email of the user on the GUI
 });
 
 module.exports = router;

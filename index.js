@@ -3,7 +3,7 @@ const Joi = require('@hapi/joi');
 Joi.objectId = require('joi-objectid')(Joi);
 //Load the mongoose module
 const mongoose = require('mongoose');
-mongoose.set('useFindAndModify', false,);//https://mongoosejs.com/docs/deprecations.html
+mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 mongoose.set('useCreateIndex', true);
 const config = require('config');//The config package gives us an elegant way to store configuration settings for our app.
 require('dotenv').config();
@@ -23,6 +23,7 @@ const movies = require('./routes/movies');
 const rentals = require('./routes/rentals');
 const users = require('./routes/users');
 const home = require('./routes/home');
+const auth = require('./routes/auth');
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
 const express = require('express');
@@ -50,6 +51,7 @@ app.use('/api/customers', customers);
 app.use('/api/movies', movies);
 app.use('/api/rentals', rentals);
 app.use('/api/users', users);
+app.use('/api/auth', auth);
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
 
 //Setting the pug package as our html template engine
@@ -58,9 +60,13 @@ app.set('views', './views');//Telling the app that the  pug templates are in the
 
 
 //Configuration
-console.log('Application Name: ' + config.get('name'));
-console.log('Mail Server: ' + config.get('mail.host'));
-console.log('Mail Password: ' + config.get('mail.password'));
+if (!config.get('jwtPrivateKey')) {//On terminal in VS CODE //export vidly_mosh_jwtPrivateKey=mySecretKeyExample
+    console.error('FATAL ERROR: jwtPrivateKey is not defined.');//You set the environment variable with export (on Mac) and set (on Windows) terminal
+    process.exit(1);//0 is for no error; any other code is for error.
+}
+//console.log('Application Name: ' + config.get('name'));
+//console.log('Mail Server: ' + config.get('mail.host'));
+//console.log('Mail Password: ' + config.get('mail.password'));
 
 app.use(logger);
 app.use(authenticator);
