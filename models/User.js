@@ -25,6 +25,10 @@ const userSchema = new mongoose.Schema(
             minlength: 8,
             maxlength: 1024,//Hashed password can be longer so, 1024 but in Joi validation, we use 255 as the one from req.body is a plain text password.
             required: true
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false
         }
     }
 );
@@ -41,7 +45,8 @@ userSchema.methods.generateAuthToken = function () {
     const token = jwt.sign(
         //The first argument passed below is our payload that we pass as an object.
         {
-            _id: this._id//This is the object id of this user in the MongoDB collection users.
+            _id: this._id,//This is the object id of this user in the MongoDB collection users.
+            isAdmin: this.isAdmin
         },
         config.get('jwtPrivateKey')
         //The second argument is the private key which will be used to create a digital signature. Never hardcode/store your secret in the sourcecode.
@@ -66,6 +71,7 @@ function validateUser(user) {
         {
             name: Joi.string().min(2).max(50).required(),
             email: Joi.string().min(5).max(255).required().email(),
+            isAdmin: Joi.boolean(),
             //password: Joi.string().min(8).max(255).required()
             password: passwordComplexity(complexityOptions)
         }

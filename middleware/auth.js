@@ -11,6 +11,7 @@ module.exports = (req, res, next) => {
     try {
         //We encode the payload in a method in the userSchema in the model User in User.js. Here, we decode it.
         const decodedPayload = jwt.verify(token, config.get('jwtPrivateKey'));
+        //adds a 'user' property to the req object and assign to it the decodedPayload.
         req.user = decodedPayload;//After this assignment, we have access to req.user._id
         /* 
         Pass control to the next middleware function in the request processing pipeline, 

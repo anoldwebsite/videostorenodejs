@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { Genre } = require('../models/Genre');
 const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 
 //Get all the movies from the database
 router.get('/', async (req, res) => {
@@ -29,7 +30,7 @@ router.get('/:id', async (req, res) => {
 //Create a new movie in the database
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', auth, async (req, res) => {
+router.post('/', [auth, admin], async (req, res) => {
     const error = validateMovie(req.body);
     if (error) {
         return res.status(400).send("New movie could not be created in the database due to the non-conformity of the customer with the schema!");
@@ -60,7 +61,7 @@ router.post('/', auth, async (req, res) => {
     }
 });
 //Edit data of an existing movie
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', [auth, admin], async (req, res) => {
     const error = validateMovie(req.body);
     if (error) {
         console.log(error);
@@ -102,7 +103,7 @@ router.put('/:id', auth, async (req, res) => {
     }
 });
 //Delete one movie the id of which is given 
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', [auth, admin], async (req, res) => {
     try {
         const movie = await Movie.findByIdAndDelete(req.params.id);
         if (movie) res.send(`Deleted movie, details of which are: ${movie}`);
@@ -112,7 +113,7 @@ router.delete('/:id', auth, async (req, res) => {
     }
 });
 //Delte all the movies in one go
-router.delete('/', auth, async (req, res) => {
+router.delete('/', [auth, admin], async (req, res) => {
     try {
         const movies = await Movie.deleteMany({});
         if (movies) res.send('All the movies in the database have been delted!');
