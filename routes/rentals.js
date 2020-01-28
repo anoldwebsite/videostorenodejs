@@ -4,13 +4,15 @@ const { Customer } = require('../models/Customer');
 const { Movie } = require('../models/Movie');
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
 router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
     if (rentals) res.send(rentals);
 });
-
-router.post('/', async (req, res) => {
+//The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
+//The 3rd argument is also a middleware, a route-handler in this case.
+router.post('/', auth, async (req, res) => {
     const error = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 

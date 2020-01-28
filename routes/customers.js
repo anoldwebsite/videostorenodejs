@@ -1,6 +1,7 @@
 const { Customer, validate } = require('../models/Customer');
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
 //Get all the customers from the database
 router.get('/', async (req, res) => {
@@ -33,7 +34,9 @@ router.get('/:id', async (req, res) => {
 });
 
 //Edit an existing customer's data
-router.put('/:id', async (req, res) => {
+//The 2nd argument is a middleware that checks the authorization of this user who is trying to edit the data.
+//The 3rd argument is also a middleware, a route-handler in this case.
+router.put('/:id', auth, async (req, res) => {
   const error = validate(req.body);
   if (error)
     return res
@@ -73,7 +76,9 @@ router.put('/:id', async (req, res) => {
 });
 
 //Create a new customer in the database
-router.post('/', async (req, res) => {
+//The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
+//The 3rd argument is also a middleware, a route-handler in this case.
+router.post('/', auth, async (req, res) => {
   const error = validate(req.body);
   if (error) return res.status(400).send('A new customer could not be created probably due to non-conformity of the customer with the schema!');
 
@@ -93,7 +98,7 @@ router.post('/', async (req, res) => {
   }
 });
 //Delete the customer with a given id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     const customer = await Customer.findByIdAndDelete(req.params.id);
     if (customer)
@@ -114,7 +119,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 //Deleting all customers at one go
-router.delete('/', async (req, res) => {
+router.delete('/', auth, async (req, res) => {
   try {
     const customers = await Customer.deleteMany({});
     if (customers)

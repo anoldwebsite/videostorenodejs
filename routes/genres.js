@@ -1,6 +1,7 @@
 const { Genre, validate } = require('../models/Genre');
 const express = require('express');
 const router = express.Router();
+const auth = require('../middleware/auth');
 
 //Get all the genres from the database.
 router.get('/', async (req, res) => {
@@ -10,9 +11,12 @@ router.get('/', async (req, res) => {
 });
 
 //Create a new genre in the mongodb
-router.post('/', async (req, res) => {
+//The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
+//The 3rd argument is also a middleware, a route-handler in this case.
+router.post('/', auth, async (req, res) => {
+
     const error = validate(req.body);
-    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the customer with the schema!");
+    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the genre with the schema!");
 
     try {
         const genre = new Genre({
@@ -27,7 +31,7 @@ router.post('/', async (req, res) => {
 });
 
 //put is used to update a resource in the mongodb
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the customer with the schema!");
     try {
@@ -49,7 +53,7 @@ router.put('/:id', async (req, res) => {
 });
 
 //delete is used to delete a genre/resouce from the MongoDB
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     try {
         const genre = await Genre.findByIdAndDelete(req.params.id);
         if (genre) res.send(genre);
@@ -60,7 +64,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 //Delete all genres from the MongoDB
-router.delete('/', async (req, res) => {
+router.delete('/', auth, async (req, res) => {
     //Genre.remove( {} ) //It works but is deprecated
     try {
         const genres = await Genre.deleteMany({});

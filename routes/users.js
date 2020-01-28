@@ -4,11 +4,12 @@ const mongoose = require('mongoose');
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const config = require('config');
-const jwt = require('jsonwebtoken');
+const auth = require('../middleware/auth');
 
 //Create a new User
-router.post('/', async (req, res) => {
+//The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
+//The 3rd argument is also a middleware, a route-handler in this case.
+router.post('/', auth, async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send(`A new user could not be created. ${error.details[0].message}`);
     //Check if a user with this email is already registered.
