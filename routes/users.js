@@ -6,20 +6,21 @@ const router = express.Router();
 const bcrypt = require('bcrypt');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
+const asyncMiddleware = require('../middleware/async');
 
 //Get the current user
 /* We do not allow to get the id directly from the user to avoid them sending someone
  else's id and get hold of unauthorized information. Therefore, we get the user id from the token.
 */
-router.get('/me', [auth], async (req, res) => {
+router.get('/me', [auth], asyncMiddleware(async (req, res) => {
     const user = await User.findById(req.user._id)
         .select('-password');//Do not show password.
     if (user) return res.send(user);
     return res.status(401).send('You are not authorized to access this resource!');
-});
+}));
 
 //Create a new User
-router.post('/', [auth, admin], async (req, res) => {
+router.post('/', [auth, admin], asyncMiddleware(async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send(`A new user could not be created. ${error.details[0].message}`);
     //Check if a user with this email is already registered.
@@ -45,7 +46,8 @@ router.post('/', [auth, admin], async (req, res) => {
     await user.save();
     const token = user.generateAuthToken();//generateAuthToken is a method in the schema of the class User in User.js
     //We don't want to return the password field, so we are using  a library lodash to selectively return some fields of the object user.
-    if (user) res.header('x-auth-token', token).send(lodash.pick(user, ['id', 'name', 'email', 'isAdmin']));//Do not print the  password. Just print id name and email of the user on the GUI
-});
+    if (user) return res.header('x-auth-token', token).send(lodash.pick(user, ['id', 'name', 'email', 'isAdmin']));//Do not print the  password. Just print id name and email of the user on the GUI
+    return res.status(500).send('New user could not be created!  Something went wrong!');
+}));
 
 module.exports = router;

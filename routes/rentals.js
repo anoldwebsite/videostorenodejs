@@ -5,14 +5,16 @@ const { Movie } = require('../models/Movie');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const asyncMiddleware = require('../middleware/async');
 
-router.get('/', async (req, res) => {
+router.get('/', asyncMiddleware(async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
-    if (rentals) res.send(rentals);
-});
+    if (rentals) return res.send(rentals);
+    return res.status(400).send('No rentals found!');
+}));
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', auth, async (req, res) => {
+router.post('/', auth, asyncMiddleware(async (req, res) => {
     const error = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -61,36 +63,36 @@ router.post('/', auth, async (req, res) => {
     //Atomic transactions implementation.
     const session = await Rental.startSession();
     if (session) session.startTransaction();
-    try {
-        if (req.body.rentalType === 'borrow') {
-            rental.dateOut = Date.now();
-            if (movie.numberInStock > 0) movie.numberInStock--;
-            customer.numberOfMoviesRented++;
-        }
-        if (req.body.rentalType === 'return') {
-            rental.dateReturned = Date.now();
-            movie.numberInStock++;
-            if (customer.numberOfMoviesRented > 0) customer.numberOfMoviesRented--;
-            //Delete the record/document for borrowing this movie as it has been returned now.
-            if (req.body.rentalType === 'return' && alreadyBorrowedThisOne) {
-                try {
-                    const rentalToDelete = await Rental.findByIdAndDelete(alreadyBorrowedThisOne._id);
-                    if (!rentalToDelete) {
-                        return res.status(400).send("The record of borrowing could not be deleted, so this transaction of return failed!")
-                    }
-                } catch (error) {
-                    console.error(error);
+
+    if (req.body.rentalType === 'borrow') {
+        rental.dateOut = Date.now();
+        if (movie.numberInStock > 0) movie.numberInStock--;
+        customer.numberOfMoviesRented++;
+    }
+    if (req.body.rentalType === 'return') {
+        rental.dateReturned = Date.now();
+        movie.numberInStock++;
+        if (customer.numberOfMoviesRented > 0) customer.numberOfMoviesRented--;
+        //Delete the record/document for borrowing this movie as it has been returned now.
+        if (req.body.rentalType === 'return' && alreadyBorrowedThisOne) {
+            try {
+                const rentalToDelete = await Rental.findByIdAndDelete(alreadyBorrowedThisOne._id);
+                if (!rentalToDelete) {
+                    return res.status(400).send("The record of borrowing could not be deleted, so this transaction of return failed!")
                 }
+            } catch (error) {
+                console.error(error);
             }
         }
-        await movie.save();
-        await customer.save();
-        await rental.save();
-        const transaction = await createTransaction(req, res);
-        await session.commitTransaction();
-        if (rental && transaction) {
-            return res.send(
-                `
+    }
+    await movie.save();
+    await customer.save();
+    await rental.save();
+    const transaction = await createTransaction(req, res);
+    await session.commitTransaction();
+    if (rental && transaction) {
+        return res.send(
+            `
                         You ${req.body.rentalType}ed: 
 
                         ${rental}
@@ -101,23 +103,18 @@ router.post('/', auth, async (req, res) => {
                         
                         ${transaction}
                     `
-            );
-        }
-    } catch (err) {
-        await session.abortTransaction();
-        console.log(err);
-        return res.status(500).send(err.message);
-    } finally {
+        );
         session.endSession();
     }
+    session.endSession();
     res.status(400).send("There is some problem!. You can't rent/return a movie now.");
-});
+}));
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', asyncMiddleware(async (req, res) => {
     const rental = await Rental.findById(req.params.id);
     if (!rental) return res.status(404).send('The rental with the given ID was not found.');
-    res.send(rental);
-});
+    return res.send(rental);
+}));
 
 async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
     let rental;

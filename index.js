@@ -1,3 +1,4 @@
+const error = require('./middleware/error');
 const Joi = require('@hapi/joi');
 //Joi.objectId is a mthod on this Joi object. The result of require('joi-objectid') is a function, so we will pass Joi as parameter to this function.
 Joi.objectId = require('joi-objectid')(Joi);
@@ -53,6 +54,8 @@ app.use('/api/rentals', rentals);
 app.use('/api/users', users);
 app.use('/api/auth', auth);
 app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
+//A single place to handle errors in the app which makes it easy to change the message etc. 
+app.use(error);//We are not calling the ftn. We are passing a reference to that ftn, which is in file ./middleware/error.js.
 
 //Setting the pug package as our html template engine
 app.set('view engine', 'pug');
@@ -68,8 +71,8 @@ if (!config.get('jwtPrivateKey')) {//On terminal in VS CODE //export vidly_mosh_
 //console.log('Mail Server: ' + config.get('mail.host'));
 //console.log('Mail Password: ' + config.get('mail.password'));
 
-app.use(logger);
-app.use(authenticator);
+/* app.use(logger);
+app.use(authenticator); */
 
 /* 
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
