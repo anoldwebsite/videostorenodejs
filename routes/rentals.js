@@ -5,16 +5,16 @@ const { Movie } = require('../models/Movie');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const asyncMiddleware = require('../middleware/async');
+//const asyncMiddleware = require('../middleware/async');
 
-router.get('/', asyncMiddleware(async (req, res) => {
+router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
     if (rentals) return res.send(rentals);
     return res.status(400).send('No rentals found!');
-}));
+});
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', auth, asyncMiddleware(async (req, res) => {
+router.post('/', auth, async (req, res) => {
     const error = validateRental(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -108,13 +108,13 @@ router.post('/', auth, asyncMiddleware(async (req, res) => {
     }
     session.endSession();
     res.status(400).send("There is some problem!. You can't rent/return a movie now.");
-}));
+});
 
-router.get('/:id', asyncMiddleware(async (req, res) => {
+router.get('/:id', async (req, res) => {
     const rental = await Rental.findById(req.params.id);
     if (!rental) return res.status(404).send('The rental with the given ID was not found.');
     return res.send(rental);
-}));
+});
 
 async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
     let rental;

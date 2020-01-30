@@ -4,9 +4,9 @@ const router = express.Router();
 const { User } = require('../models/User');
 const Joi = require('@hapi/joi');
 const passwordComplexity = require('joi-password-complexity');
-const asyncMiddleware = require('../middleware/async');
+//const asyncMiddleware = require('../middleware/async');
 
-router.post('/', asyncMiddleware(async (req, res) => {
+router.post('/', async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -23,7 +23,7 @@ router.post('/', asyncMiddleware(async (req, res) => {
     //Valid user. Return a json web token (jwt)
     const token = user.generateAuthToken();
     if (token) return res.send(token);
-}));
+});
 
 function validate(user) {
     const complexityOptions = {
