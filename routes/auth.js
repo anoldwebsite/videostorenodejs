@@ -1,3 +1,4 @@
+
 const bcrypt = require('bcrypt');
 const express = require('express');
 const router = express.Router();
@@ -6,7 +7,11 @@ const Joi = require('@hapi/joi');
 const passwordComplexity = require('joi-password-complexity');
 //const asyncMiddleware = require('../middleware/async');
 
+const LoggerService = require('../middleware/logger');
+const logger = new LoggerService('auth');
+
 router.post('/', async (req, res) => {
+    //throw new Error();
     const error = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
@@ -16,13 +21,25 @@ router.post('/', async (req, res) => {
         }
     );
 
-    if (!user) return res.status(400).send('Invalid email or password!');//Better for security not to tell exactly which one of email of password is invalid.
+    if (!user) {
+        //TODO: The meta prop in the MongoDB is always set to Null.
+        //throw new Error('Invalid email');
+        logger.error('Invalid Email', { "email": req.body.email });
+        return res.status(400).send('Invalid email or password!');//Better for security not to tell exactly which one of email of password is invalid.
+    }
     //req.body.password has plain text password whereas user.password has hashed text password which includes the salt. 
     const validPassword = await bcrypt.compare(req.body.password, user.password)
-    if (!validPassword) return res.status(400).send('Invalid email or password');
+    if (!validPassword) {
+        //throw new Error('Invalid password');
+        logger.error('Invalid Password', { "password": req.body.password });
+        return res.status(400).send('Invalid email or password');
+    }
     //Valid user. Return a json web token (jwt)
     const token = user.generateAuthToken();
-    if (token) return res.send(token);
+    if (token) {
+        logger.info('token issued', token);
+        return res.send(token);
+    }
 });
 
 function validate(user) {

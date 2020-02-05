@@ -9,6 +9,7 @@ module.exports = (req, res, next) => {
     //State 401 means that the client does not have the authentication credentials to access a resource on this server.
     if (!token) return res.status(401).send('Access denied. No token provided.');
     try {
+        //throw new Error();
         //We encode the payload in a method in the userSchema in the model User in User.js. Here, we decode it.
         const decodedPayload = jwt.verify(token, config.get('jwtPrivateKey'));
         //adds a 'user' property to the req object and assign to it the decodedPayload.

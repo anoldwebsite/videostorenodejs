@@ -1,3 +1,6 @@
+/* const LoggerService = require('./middleware/logger');
+const logger = new LoggerService('index'); */
+const winston = require('winston');
 require('express-async-errors');
 const error = require('./middleware/error');
 const Joi = require('@hapi/joi');
@@ -13,8 +16,8 @@ require('dotenv').config();
 const startupDebugger = require('debug')('app:startup');
 const dbDebugger = require('debug')('app:db');
 
-const logger = require('./middleware/logger');//custom middleware
-const authenticator = require('./middleware/authenticator');//custom middleware
+//const logger = require('./middleware/logger');//custom middleware
+//const authenticator = require('./middleware/authenticator');//custom middleware
 //Helmet is a collection of 14 smaller middleware functions that set HTTP response headers. https://www.npmjs.com/package/helmet
 const helmet = require('helmet');
 //morgan is HTTP request logger middleware for node.js https://www.npmjs.com/package/morgan 
@@ -32,9 +35,10 @@ const express = require('express');
 const app = express();
 
 //Connect to the monogodb called vidly
-mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
-    .then(() => console.log('Connected to database vidly...'))
-    .catch(err => console.error('Could not connect to the MongoDB ...'));
+//mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
+mongoose.connect(process.env.MONGODB, { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
+    .then(() => logger.info('Connected to database vidly...'))
+    .catch(err => logger.error('Could not connect to the MongoDB ...', err));
 
 //If the request object has a json object, then the module express, which is a middleware, populates req.body property.
 // json() is a middleware in the express framework that is used to parse the body of requests with a JSON payload
@@ -62,6 +66,13 @@ app.use(error);//We are not calling the ftn. We are passing a reference to that 
 app.set('view engine', 'pug');
 app.set('views', './views');//Telling the app that the  pug templates are in the folder ./views
 
+const logger = winston.createLogger(
+    {
+        transports: [
+            new winston.transports.Console()
+        ]
+    }
+);
 
 //Configuration
 if (!config.get('jwtPrivateKey')) {//On terminal in VS CODE //export vidly_mosh_jwtPrivateKey=mySecretKeyExample
@@ -91,7 +102,4 @@ dbDebugger('Connected to the database...');
 
 //process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Listening on port ${PORT}`));
-console.log("*************");
-console.log(process.env.PORT);
-console.log("*************");
+app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));

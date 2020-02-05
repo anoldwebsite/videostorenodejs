@@ -4,20 +4,23 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
+const LoggerService = require('../middleware/logger');
+const logger = new LoggerService('customers');
 
 //Get all the customers from the database
 router.get('/', async (req, res) => {
   const customers = await Customer.find().sort('name');
   if (customers) return res.send(customers);
+  logger.info('No customers found!', req.body);
+  return res.status(400).send('No customers found!');
 });
 
 //Get a customer with a given id
 router.get('/:id', async (req, res) => {
   const customer = await Customer.findById(req.params.id);
   if (customer) return res.send(customer);
-  return res.status(400).send(
-    `Customer with id: $${req.params.id} was NOT found as this id gave: ${modifiedCustomer}`
-  );
+  logger.info(`Customer with id: $${req.params.id} was NOT found!`, req.params.id);
+  return res.status(400).send(`Customer with id: $${req.params.id} was NOT found!`);
 });
 
 //Edit an existing customer's data
@@ -25,8 +28,8 @@ router.get('/:id', async (req, res) => {
 //The 3rd argument is also a middleware, a route-handler in this case.
 router.put('/:id', [auth, admin], async (req, res) => {
   const error = validate(req.body);
-  if (error)
-    return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
+  if (error) return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
+
   const customer = await Customer.findByIdAndUpdate(
     req.params.id,
     {
@@ -42,6 +45,7 @@ router.put('/:id', [auth, admin], async (req, res) => {
     }
   );
   if (customer) return res.send(customer);
+  logger.info('Customer could not be updated!', { "You entered Customer id:": req.params.id });
   return res.status(400).send(`Customer with id: $${req.params.id} was NOT updated as this id gave: ${customer}`);
 });
 
@@ -61,22 +65,23 @@ router.post('/', [auth, admin], async (req, res) => {
   });
   await customer.save();
   if (customer) return res.send(customer);
+  logger.info('New customer could not be created.', { "customer id:": req.body });
   return res.status(400).send(err.message);
 });
 
 //Delete the customer with a given id
 router.delete('/:id', [auth, admin], async (req, res) => {
   const customer = await Customer.findByIdAndDelete(req.params.id);
-  if (customer)
-    return res.send(`The customer with the following data was deleted: ${customer}`);
+  if (customer) return res.send(`The customer with the following data was deleted: ${customer}`);
+  logger.info('The customer could not be deleted.', { "customer id:": req.params.id });
   return res.status(400).send(`Customer with id: ${req.params.id} was not found! The database returned ${customer}.`);
 });
 
 //Deleting all customers at one go
 router.delete('/', [auth, admin], async (req, res) => {
   const customers = await Customer.deleteMany({});
-  if (customers)
-    return res.send(`Number of Customers in the database: ${obj.n} Number of Customers Deleted: ${obj.deletedCount}`);
+  if (customers) return res.send(`Number of Customers in the database: ${obj.n} Number of Customers Deleted: ${obj.deletedCount}`);
+  logger.info('No customers were deleted!');
   return res.status(400).send(`No customers were deleted! The request for deletion of all customers returned ${customers}`);
 });
 
