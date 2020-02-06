@@ -6,10 +6,14 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 //const asyncMiddleware = require('../middleware/async');
+const LoggerService = require('../middleware/logger');
+const logger = new LoggerService('rentals');
 
+//Get all the rentals.
 router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
     if (rentals) return res.send(rentals);
+    logger.info('Something went wrong! No rentals found or could not be retrieved!');
     return res.status(400).send('No rentals found!');
 });
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
@@ -20,7 +24,7 @@ router.post('/', auth, async (req, res) => {
 
     /* 
     What if the customerId or movieId supplied by the user is invalid. 
-    //We can do the same validation in our metho validateRental using an npm package joi-objectid which is installed if we write on terminal npm i joi-objectid --save
+    //We can do the same validation in our method validateRental using an npm package joi-objectid which is installed if we write on terminal npm i joi-objectid --save
     if (!mongoose.Types.ObjectId.isValid(req.body.customerId)) return res.status(400).send(`Customer Id: ${req.body.customerId} is invalid!`);
     if (!mongoose.Types.ObjectId.isValid(req.body.movieId)) return res.status(400).send(`Movie id: ${req.body.movieId} is invalid!`);
     */
@@ -62,7 +66,11 @@ router.post('/', auth, async (req, res) => {
     });
     //Atomic transactions implementation.
     const session = await Rental.startSession();
-    if (session) session.startTransaction();
+    if (session) {
+        logger.info('Session created!', session);
+        session.startTransaction();
+        logger.info('Transaction started!');
+    }
 
     if (req.body.rentalType === 'borrow') {
         rental.dateOut = Date.now();
@@ -81,7 +89,7 @@ router.post('/', auth, async (req, res) => {
                     return res.status(400).send("The record of borrowing could not be deleted, so this transaction of return failed!")
                 }
             } catch (error) {
-                console.error(error);
+                logger.error('The movie could not be returned!', error);
             }
         }
     }
@@ -91,6 +99,7 @@ router.post('/', auth, async (req, res) => {
     const transaction = await createTransaction(req, res);
     await session.commitTransaction();
     if (rental && transaction) {
+        logger.info('Transaction created and committed to the database!', { "transaction": transaction, "rental": rental });
         return res.send(
             `
                         You ${req.body.rentalType}ed: 
@@ -107,12 +116,16 @@ router.post('/', auth, async (req, res) => {
         session.endSession();
     }
     session.endSession();
+    logger.error("There is some problem!. You can't rent/return a movie now.", req.body);
     res.status(400).send("There is some problem!. You can't rent/return a movie now.");
 });
 
 router.get('/:id', async (req, res) => {
     const rental = await Rental.findById(req.params.id);
-    if (!rental) return res.status(404).send('The rental with the given ID was not found.');
+    if (!rental) {
+        logger.info('Movie with the given id could not be found.', req.params.id);
+        return res.status(404).send(`Rental with id: ${req.params.id} was not found!`);
+    }
     return res.send(rental);
 });
 
@@ -130,7 +143,7 @@ async function checkIfAlreadyBorrowedThisMovie(movie, customer) {
         if (rental && rental.length > 0) return rental[0];//Send back the element at index 0 of array rental.
         return false;//This means the rental array is empty as this customer has not rented a copy of this movie.
     } catch (error) {
-        console.error(error);
+        logger.error('Something failed!', error);
     }
 };
 async function createTransaction(req, res) {
@@ -146,6 +159,7 @@ async function createTransaction(req, res) {
         );
         await transaction.save();
         if (transaction) return transaction;
+        logger.info('Sorry, you can not borrow now! Something failed!', req.body);
     } else if (req.body.rentalType === 'return') {
         const transaction = new Transaction(
             {
@@ -157,6 +171,7 @@ async function createTransaction(req, res) {
         );
         await transaction.save();
         if (transaction) return transaction;
+        logger.info('Sorry, you can not return the movie now! Something failed!', req.body);
     }
     return res.status(400).send(`Something is not working right now. Try later please! ${error.message}`);
 };

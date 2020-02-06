@@ -6,6 +6,8 @@ const bcrypt = require('bcrypt');
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
+const LoggerService = require('../middleware/logger');
+const logger = new LoggerService('users');
 
 //Get the current user
 /* We do not allow to get the id directly from the user to avoid them sending someone
@@ -15,11 +17,13 @@ router.get('/me', [auth], async (req, res) => {
     const user = await User.findById(req.user._id)
         .select('-password');//Do not show password.
     if (user) return res.send(user);
+    logger.info('You are not authorized to access this resource', req.user._id);
     return res.status(401).send('You are not authorized to access this resource!');
 });
 router.get('/', [auth], async (req, res) => {
     const users = await User.find().select({ name: 1, email: 1, isAdmin: 1 });//Do not show passwords
     if (users) return res.send(users);
+    logger.info('No users found!');
     return res.status(400).send('Nothing found!')
 });
 router.delete('/:id', [auth, admin], async (req, res) => {
@@ -56,7 +60,11 @@ router.post('/', [auth, admin], async (req, res) => {
     await user.save();
     const token = user.generateAuthToken();//generateAuthToken is a method in the schema of the class User in User.js
     //We don't want to return the password field, so we are using  a library lodash to selectively return some fields of the object user.
-    if (user) return res.header('x-auth-token', token).send(lodash.pick(user, ['id', 'name', 'email', 'isAdmin']));//Do not print the  password. Just print id name and email of the user on the GUI
+    if (user && token) {
+        logger.info('New user created and token issued!', { "email": user.email, "name": user.name });
+        return res.header('x-auth-token', token).send(lodash.pick(user, ['id', 'name', 'email', 'isAdmin']));//Do not print the  password. Just print id name and email of the user on the GUI
+    }
+    logger.error('New user could not be created!', req.body);
     return res.status(500).send('New user could not be created!  Something went wrong!');
 });
 
