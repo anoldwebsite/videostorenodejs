@@ -44,16 +44,19 @@ class LoggerService {
                             options: {
                                 useUnifiedTopology: true
                             },
-                            storeHost: true,
+                            metaKey: 'meta',
+                            storeHost: true,//value of os.host() is saved i.e., your computer name as shown on prompt in terminal.
                         }
                     )
 
                 ]
             }
         );//function createLogger ends here.
-
+        //Call exceptions.handle with a transport to handle exceptions.
+        logger.exceptions.handle(new winston.transports.File({ filename: 'exceptions.log' }));
         this.logger = logger;
     };//constructor ends here.
+
     setLogData(log_data) {
         this.log_data = log_data
     }
@@ -61,7 +64,8 @@ class LoggerService {
         this.logger.log('info', message);
     }
     async info(message, obj) {
-        this.logger.log('info', message, { obj });
+        //this.logger.log('info', message, { obj });
+        this.logger.log('info', message, obj);
     }
     async debug(message) {
         this.logger.log('debug', message);
@@ -73,7 +77,8 @@ class LoggerService {
         this.logger.log('error', message);
     }
     async error(message, obj) {
-        this.logger.log('error', message, { obj });
+        //this.logger.log('error', message, { obj });
+        this.logger.log('error', message, obj);
     }
 
 }

@@ -1,5 +1,5 @@
-/* const LoggerService = require('./middleware/logger');
-const logger = new LoggerService('index'); */
+const LoggerService = require('./middleware/logger');
+const logger = new LoggerService('index');
 const winston = require('winston');
 require('express-async-errors');
 const error = require('./middleware/error');
@@ -66,13 +66,6 @@ app.use(error);//We are not calling the ftn. We are passing a reference to that 
 app.set('view engine', 'pug');
 app.set('views', './views');//Telling the app that the  pug templates are in the folder ./views
 
-const logger = winston.createLogger(
-    {
-        transports: [
-            new winston.transports.Console()
-        ]
-    }
-);
 
 //Configuration
 if (!config.get('jwtPrivateKey')) {//On terminal in VS CODE //export vidly_mosh_jwtPrivateKey=mySecretKeyExample
@@ -103,3 +96,16 @@ dbDebugger('Connected to the database...');
 //process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));
+
+//Hanlding uncaught exceptions
+process.on('uncaughtException', (ex) => {
+    logger.error('We got an uncaught exception!', ex);
+});
+//throw new Error('Uncaught exception testing!');
+
+//Handling unhandled promise rejections.
+process.on('unhandledRejection', (ex) => {
+    logger.error('We got an unhandled promise rejection', ex)
+});
+const p = Promise.reject(new Error('Something failed again!'));
+p.then(() => logger.info('Done!'));//Note that we have no catch for the promise.
