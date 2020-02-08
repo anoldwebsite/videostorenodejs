@@ -49,6 +49,21 @@ const logger = winston.createLogger(
     }
 );//function createLogger ends here.
 
+/* The function below, which is an error middleware in Express, catches any error in the request processing pipeline. 
+//This function will ignore any erros that happen outside the context of express. For that you need to use in index.js:
+//Hanlding uncaught exceptions
+process.on('uncaughtException', (ex) => {
+    logger.error('We got an uncaught exception!', ex);//Where logger is in file logger.js in this app.
+});
+OR
+const winston = require('winston');
+winston.handleExceptions(new winston.transports.File({filename: 'uncaughtExceptions.log'}));
+
+Similarly, for unhandled promise rejections, you have to use:
+process.on('unhandledRejection', (ex) => {
+    logger.error('We got an unhandled promise rejection', ex);//Where logger is in file logger.js in this app.
+});
+*/
 module.exports = function (err, req, res, next) {
     logger.error(err.message, { meta: err });//This has the same output as the one in block comment below.
     /*     logger.error(err.message, {

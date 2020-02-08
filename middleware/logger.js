@@ -17,6 +17,8 @@ class LoggerService {
                     new winston.transports.Console(
                         {
                             level: 'info',
+                            colorize: true,
+                            prettyPrint: true
                         }
                     ),
                     new winston.transports.File(

@@ -23,9 +23,9 @@ router.post('/', [auth, admin], async (req, res) => {
     if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the genre with the schema!");
     //Check if genre already exists.
     const existingGenre = await Genre.find({ name: req.body.name });
-    if (existingGenre) {
+    if (existingGenre && existingGenre.length > 0) {
         logger.info('Genere already exists in the database!', existingGenre);
-        return res.status(400).send(`${req.body.name} already exists in the database.`);
+        return res.status(400).send(`${req.body.name} already exists in the database. ${existingGenre}`);
     }
     const genre = new Genre({
         name: req.body.name

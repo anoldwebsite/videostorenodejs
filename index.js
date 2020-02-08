@@ -1,44 +1,16 @@
-const LoggerService = require('./middleware/logger');
-const logger = new LoggerService('index');
-const winston = require('winston');
-require('express-async-errors');
-const error = require('./middleware/error');
-const Joi = require('@hapi/joi');
-//Joi.objectId is a mthod on this Joi object. The result of require('joi-objectid') is a function, so we will pass Joi as parameter to this function.
-Joi.objectId = require('joi-objectid')(Joi);
-//Load the mongoose module
-const mongoose = require('mongoose');
-mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
-mongoose.set('useCreateIndex', true);
-const config = require('config');//The config package gives us an elegant way to store configuration settings for our app.
-require('dotenv').config();
-//We can use the debug package to add debugging information to an application. Better than console.log() statements.
-const startupDebugger = require('debug')('app:startup');
-const dbDebugger = require('debug')('app:db');
 
-//const logger = require('./middleware/logger');//custom middleware
-//const authenticator = require('./middleware/authenticator');//custom middleware
-//Helmet is a collection of 14 smaller middleware functions that set HTTP response headers. https://www.npmjs.com/package/helmet
-const helmet = require('helmet');
-//morgan is HTTP request logger middleware for node.js https://www.npmjs.com/package/morgan 
-const morgan = require('morgan');
-const genres = require('./routes/genres');
-const customers = require('./routes/customers');
-const movies = require('./routes/movies');
-const rentals = require('./routes/rentals');
-const users = require('./routes/users');
-const home = require('./routes/home');
-const auth = require('./routes/auth');
+require('dotenv').config();
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
 const express = require('express');
 const app = express();
 
-//Connect to the monogodb called vidly
-//mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
-mongoose.connect(process.env.MONGODB, { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
-    .then(() => logger.info('Connected to database vidly...'))
-    .catch(err => logger.error('Could not connect to the MongoDB ...', err));
+//Details of different things have been delegated to different modules below. This is a good design according to the principle of 'Separation of concern'.
+require('./startup/logging')(app);
+require('./startup/routes')(app); //The file routes.js exports a function and we are passing the app object to that function.
+require('./startup/db')();//db.js in folder startup exports a function, so we are calling it with ();
+require('./startup/config')();
+require('./startup/validation')();
 
 //If the request object has a json object, then the module express, which is a middleware, populates req.body property.
 // json() is a middleware in the express framework that is used to parse the body of requests with a JSON payload
@@ -47,65 +19,32 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // static() is a middleware in the express framework that is used to serve static files.
 app.use(express.static('public'));
+
+//Helmet is a collection of 14 smaller middleware functions that set HTTP response headers. https://www.npmjs.com/package/helmet
+const helmet = require('helmet');
 app.use(helmet());
-app.use(morgan('tiny'));
-/* We tell express, that whereever you have the route that starts with /api/genres 
-you need to delegate the handling of those routes to the genres router that we get
-from this moudle. ./routes/genres */
-app.use('/api/genres', genres); //For any route that starts with /api/genres use the router genres.
-app.use('/api/customers', customers);
-app.use('/api/movies', movies);
-app.use('/api/rentals', rentals);
-app.use('/api/users', users);
-app.use('/api/auth', auth);
-app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js
-//A single place to handle errors in the app which makes it easy to change the message etc. 
-app.use(error);//We are not calling the ftn. We are passing a reference to that ftn, which is in file ./middleware/error.js.
 
 //Setting the pug package as our html template engine
 app.set('view engine', 'pug');
 app.set('views', './views');//Telling the app that the  pug templates are in the folder ./views
 
-
-//Configuration
-if (!config.get('jwtPrivateKey')) {//On terminal in VS CODE //export vidly_mosh_jwtPrivateKey=mySecretKeyExample
-    console.error('FATAL ERROR: jwtPrivateKey is not defined.');//You set the environment variable with export (on Mac) and set (on Windows) terminal
-    process.exit(1);//0 is for no error; any other code is for error.
-}
-//console.log('Application Name: ' + config.get('name'));
-//console.log('Mail Server: ' + config.get('mail.host'));
-//console.log('Mail Password: ' + config.get('mail.password'));
-
+//We can use the debug package to add debugging information to an application. Better than console.log() statements.
+//const startupDebugger = require('debug')('app:startup');
+//app.use(morgan('tiny'));
+//const authenticator = require('./middleware/authenticator');//custom middleware
+//const logger = require('./middleware/logger');//custom middleware not in the project now. Had it in the beginnning.
+//morgan is HTTP request logger middleware for node.js https://www.npmjs.com/package/morgan 
+//const morgan = require('morgan');
 /* app.use(logger);
 app.use(authenticator); */
 
-/* 
+/*
 console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
-console.log(`app: ${app.get('env')}`);//Getting the environement variable process.env.NODE_ENV of our app. 
+console.log(`app: ${app.get('env')}`);//Getting the environement variable process.env.NODE_ENV of our app.
 */
 //To enable logging of http requests only on the development machines
 //We can detect the environment in which our Node application is running (development or production, etc) using app.get('env') or process.env.NODE_ENV
-if (app.get('env') === 'development') {
+/* if (app.get('env') === 'development') {
     app.use(morgan('tiny'));
     startupDebugger('Morgan enabled for logging http requests only in the development mode.');
-}
-
-//Db work...
-dbDebugger('Connected to the database...');
-
-//process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));
-
-//Hanlding uncaught exceptions
-process.on('uncaughtException', (ex) => {
-    logger.error('We got an uncaught exception!', ex);
-});
-//throw new Error('Uncaught exception testing!');
-
-//Handling unhandled promise rejections.
-process.on('unhandledRejection', (ex) => {
-    logger.error('We got an unhandled promise rejection', ex)
-});
-const p = Promise.reject(new Error('Something failed again!'));
-p.then(() => logger.info('Done!'));//Note that we have no catch for the promise.
+} */
