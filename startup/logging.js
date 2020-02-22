@@ -5,9 +5,9 @@ const logger = new LoggerService('logging');
 require('dotenv').config();
 
 module.exports = function (app) {
-    //process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
+/*     //process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
     const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));
+    const server = app.listen(PORT, () => logger.info(`Listening on port ${PORT}`)); */
 
     //Hanlding uncaught exceptions
     process.on('uncaughtException', (ex) => {

@@ -1,5 +1,6 @@
-
 require('dotenv').config();
+const LoggerService = require('./middleware/logger');
+const logger = new LoggerService('logging');
 
 //Building a webserver. Express is a minimalistic and lightweight framework for building webservers.
 const express = require('express');
@@ -27,6 +28,12 @@ app.use(helmet());
 //Setting the pug package as our html template engine
 app.set('view engine', 'pug');
 app.set('views', './views');//Telling the app that the  pug templates are in the folder ./views
+
+//process is an ojbect. env is a property of object proccess. PORT is the name of the environment variable 
+const PORT = process.env.PORT || 3000;
+const server = app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));
+
+module.exports = server;
 
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.
 //const startupDebugger = require('debug')('app:startup');
