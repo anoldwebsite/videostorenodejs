@@ -5,14 +5,17 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 mongoose.set('useCreateIndex', true);
+const config = require('config');
 //const dbDebugger = require('debug')('app:db');
 
 
 module.exports = function () {
+    const db = config.get('db');
     //Connect to the monogodb called vidly
     //mongoose.connect('mongodb://localhost/vidly', { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
-    mongoose.connect(process.env.MONGODB, { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
-        .then(() => logger.info('Connected to database vidly...'))
+    //mongoose.connect(process.env.MONGODB, { useNewUrlParser: true, useUnifiedTopology: true })//If there is no database with this name, it will be created
+    mongoose.connect(db, { useNewUrlParser: true, useUnifiedTopology: true })
+        .then(() => logger.info(`Connected to ${db}`))
     //.catch(err => logger.error('Could not connect to the MongoDB ...', err));//See comments below
     /* 
         Not needed as we are handling it with 
