@@ -60,6 +60,12 @@ describe('/api/genres', () => {
             //console.log(Array.isArray(res.body));
         });
     });
+    describe('GET /:id', () => {
+        it('should return 404 status code if invalid id is passed.', async () => {
+            const res = await request(server).get('/api/genres/1');
+            expect(res.status).toBe(404);
+        });
+    });
 });
 
 /* You should write and execute each test as if it is the only test in the world. This means that each test should be

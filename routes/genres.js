@@ -1,3 +1,4 @@
+const validateObjectId = require('../middleware/validateObjectId');
 const { Genre, validate } = require('../models/Genre');
 const express = require('express');
 const router = express.Router();
@@ -6,6 +7,7 @@ const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('genres');
+
 
 //Get all the genres from the database.
 router.get('/', async (req, res, next) => {
@@ -78,7 +80,7 @@ router.delete('/', [auth, admin], async (req, res) => {
 });
 
 //Get genre with the given id
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateObjectId , async (req, res) => {
     const genre = await Genre.findById(req.params.id);
     if (genre) return res.send(genre);
     logger.info(`Genre with id: ${req.params.id} does not exist in the database.`);
