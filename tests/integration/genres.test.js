@@ -20,8 +20,8 @@ let server;
 //Test suit for the route /api/genres
 describe('/api/genres', () => {
     //Test suit for getting all genres
-    beforeEach(() => { 
-        server = require('../../index'); 
+    beforeEach(() => {
+        server = require('../../index');
     });//Opern the server before each test.
 
     afterEach(async () => {
@@ -86,136 +86,82 @@ describe('/api/genres', () => {
     });
     //Tests for router.post('/', [auth, admin], async (req, res) => { ........ }); in the file genres.js
     describe('POST /', () => {
-        it('should return 401, if client is not logged in', async () => {
-            const res = await request(server).post('/api/genres').send({ name: 'Genre One' });
-            expect(res.status).toBe(401);//401 Unauthorized Error indicates that the requested resource is restricted and requires authentication
+        let name;
+        beforeEach(() => {
+            name = 'Genre One';//Set name, which is name of the genre, to an illegal name in a test where illegal name is needed before calling function exec().
         });
-        it('should return 403, if client is logged in but not admin', async () => {
-            //Create a user who is not an admin
-            let user = new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'someemail@yahoo.com',
-                    password: 'Somepassword2020*',
-                    isAdmin: false//Change to true to make her admin and fail the test as 200 will be status returned in that case.
-                }
-            );
-            const token = user.generateAuthToken();
-            //const token = new User().generateAuthToken();
-            const res = await request(server)
-                .post('/api/genres')
-                .set('x-auth-token', token)
-                .send(
-                    {
-                        name: 'Genre One'
-                    }
-                );
-            expect(res.status).toBe(403);
-            /* HTTP 403 provides a distinct error case from HTTP 401; while HTTP 401 is returned when the client has not authenticated, and implies that a successful response may be returned following valid authentication, HTTP 403 is returned when the client is not permitted access to the resource despite providing authentication such as insufficient permissions of the authenticated account. */
-        });
-        it('should return 400, if genre is less than 5 characters', async () => {
-            //Create a user who is admin
-            let user = new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'someemail@yahoo.com',
-                    password: 'Somepassword2020*',
-                    isAdmin: true
-                }
-            );
-            const token = user.generateAuthToken();
-            //const token = new User().generateAuthToken();
-            const res = await request(server)
-                .post('/api/genres')
-                .set('x-auth-token', token)
-                .send(
-                    {
-                        name: 'Gen'//'Some Genre' will return status 200 and thus fail the test.
-                    }
-                );
-            expect(res.status).toBe(400);
-            /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
-        });
-        it('should return 400, if genre is greater than 50 characters', async () => {
-            //Create a user who is admin
-            let user = new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'someemail@yahoo.com',
-                    password: 'Somepassword2020*',
-                    isAdmin: true
-                }
-            );
-            const token = user.generateAuthToken();
-            //const token = new User().generateAuthToken();
-            //Generate an invalid genre name i.e., more than 50 characters length
-            //new Array(14).join('Gana').length will return 52 as 52 characters are generated.
-            let invalidGenreName = new Array(14).join('Gana');//Generates an array with 14 items and then places string Gana between them i.e, 13 * 4 = 52 characters.
-            const res = await request(server)
-                .post('/api/genres')
-                .set('x-auth-token', token)
-                .send(
-                    {
-                        //name: 'GanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGana';//52 characters
-                        name: invalidGenreName//'GanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGanaGa' will return status 200 as they are 50 characters which is legal in this app, and thus fail the test.
-                    }
-                );
-            expect(res.status).toBe(400);
-            /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
-        });
-        it('should save the genre if it is valid', async () => {
-            //Create a user who is admin
-            let user = new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'someemail@yahoo.com',
-                    password: 'Somepassword2020*',
-                    isAdmin: true
-                }
-            );
-            const token = user.generateAuthToken();
-            /* const token = new User().generateAuthToken();//If we use this line of code, the test fails because the expected value (_id) is different from received which is {}
-            but this is due to the design of our app as for generating a new genre, one must be an admin and authorized i.e. logged in.*/
-            const res = await request(server)
-                .post('/api/genres')
-                .set('x-auth-token', token)
-                .send(
-                    {
-                        name: 'Genre One'
-                    }
-                );
-            //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
-            const genre = await Genre.find({ name: 'Genre One' });
-            //console.log(genre);
-            expect(genre).not.toBeNull();
-        });
-        it('should return the genre if it is valid', async () => {
+        //Can't have admin in the beforeEach as 3 of the tests fail. We set admin value in each sub-suite of tests and therefore, it is better to have it outside beforeEach otherwise we have to set admin value in each test instead of each descirbe().
+        let admin = false;//This will set isAdmin: false and we will change the value to admin = true in individual tests where we need to create a user as admin. 
 
-            //Create a user who is admin
-            let user = new User(
+        let generateToken = async () => {
+            return await new User(
                 {
                     name: 'Dilshad Rana',
-                    email: 'someemail@yahoo.com',
-                    password: 'Somepassword2020*',
-                    isAdmin: true
+                    email: 'somemail@yahoo.com',
+                    password: 'Somepassword2020?',
+                    isAdmin: admin//true for admin rights, false for non-admin user.
                 }
-            );
-            const token = user.generateAuthToken();
-            //const token = new User().generateAuthToken();//If we use this line of code, the test still passes although the Genre.fin() command returns an empty array i.e., nothing saved tot he MongoDB.
-            const res = await request(server)
+            ).generateAuthToken();
+        };
+        const exec = async () => {
+            let token = await generateToken();
+            return await request(server)
                 .post('/api/genres')
                 .set('x-auth-token', token)
-                .send(
-                    {
-                        name: 'Genre One'
-                    }
-                );
-            //We don't need to query the database in this test. We even don't care about the value of the property _id. We just want to make sure that it exists.
-            //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
-            //const genre = await Genre.find({ name: 'Genre One' });
-            console.log(res.body);
-            expect(res.body).toHaveProperty('_id');
-            expect(res.body).toHaveProperty('name', 'Genre One')
+                .send({ name });//It is the same as .send({ 'name': name });
+        };
+        describe('User not logged in', () => {
+            it('should return 401, if client is not logged in', async () => {
+                const res = await request(server).post('/api/genres').send({ name: 'Genre One' });//We are not sending the token,so not logged in.
+                expect(res.status).toBe(401);//401 Unauthorized Error indicates that the requested resource is restricted and requires authentication
+            });
+        });
+        describe('User logged in and admin', () => {
+            admin = true;
+            describe('Valid genre name', () => {
+                it('should save the genre if it is valid', async () => {
+                    await exec();//In this case we don't need the returned res object. //const res = await exec(); 
+                    //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
+                    const genre = await Genre.find({ name: name });
+                    //console.log(genre);
+                    expect(genre).not.toBeNull();
+                });
+                it('should return the genre if it is valid', async () => {
+                    //const token = new User().generateAuthToken();//If we use this line of code, the test still passes although the Genre.fin() command returns an empty array i.e., nothing saved tot he MongoDB.
+                    const res = await exec();
+                    //We don't need to query the database in this test. We even don't care about the value of the property _id. We just want to make sure that it exists.
+                    //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
+                    //const genre = await Genre.find({ name: 'Genre One' });
+                    //console.log(res.body);
+                    expect(res.body).toHaveProperty('_id');
+                    expect(res.body).toHaveProperty('name', 'Genre One')
+                });
+            });
+            describe('invalid genre name', () => {
+                it('should return 400, if genre is less than 5 characters', async () => {
+                    //const token = new User().generateAuthToken();
+                    name = 'Gen';
+                    const res = await exec(); //false means not admin i.e., isAdmin: false in the object user of class User
+                    expect(res.status).toBe(400);
+                    /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
+                });
+                it('should return 400, if genre is greater than 50 characters', async () => {
+                    //Generate an invalid genre name i.e., more than 50 characters length
+                    //new Array(14).join('Gana').length will return 52 as 52 characters are generated.
+                    name = new Array(14).join('Gana');//Generates an array with 14 items and then places string Gana between them i.e, 13 * 4 = 52 characters.
+                    const res = await exec();
+                    expect(res.status).toBe(400);
+                    /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
+                });
+            });
+        });
+        describe('User logged in but not admin', () => {
+            it('should return 403, if client is logged in but not admin', async () => {
+                admin = false;
+                const res = await exec();
+                expect(res.status).toBe(403);
+                /* HTTP 403 provides a distinct error case from HTTP 401; while HTTP 401 is returned when the client has not authenticated, and implies that a successful response may be returned following valid authentication, HTTP 403 is returned when the client is not permitted access to the resource despite providing authentication such as insufficient permissions of the authenticated account. */
+            });
         });
     });
 });
