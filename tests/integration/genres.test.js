@@ -20,7 +20,9 @@ let server;
 //Test suit for the route /api/genres
 describe('/api/genres', () => {
     //Test suit for getting all genres
-    beforeEach(() => { server = require('../../index'); });//Opern the server before each test.
+    beforeEach(() => { 
+        server = require('../../index'); 
+    });//Opern the server before each test.
 
     afterEach(async () => {
         await server.close();
@@ -163,8 +165,61 @@ describe('/api/genres', () => {
             expect(res.status).toBe(400);
             /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
         });
-    });
+        it('should save the genre if it is valid', async () => {
+            //Create a user who is admin
+            let user = new User(
+                {
+                    name: 'Dilshad Rana',
+                    email: 'someemail@yahoo.com',
+                    password: 'Somepassword2020*',
+                    isAdmin: true
+                }
+            );
+            const token = user.generateAuthToken();
+            /* const token = new User().generateAuthToken();//If we use this line of code, the test fails because the expected value (_id) is different from received which is {}
+            but this is due to the design of our app as for generating a new genre, one must be an admin and authorized i.e. logged in.*/
+            const res = await request(server)
+                .post('/api/genres')
+                .set('x-auth-token', token)
+                .send(
+                    {
+                        name: 'Genre One'
+                    }
+                );
+            //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
+            const genre = await Genre.find({ name: 'Genre One' });
+            //console.log(genre);
+            expect(genre).not.toBeNull();
+        });
+        it('should return the genre if it is valid', async () => {
 
+            //Create a user who is admin
+            let user = new User(
+                {
+                    name: 'Dilshad Rana',
+                    email: 'someemail@yahoo.com',
+                    password: 'Somepassword2020*',
+                    isAdmin: true
+                }
+            );
+            const token = user.generateAuthToken();
+            //const token = new User().generateAuthToken();//If we use this line of code, the test still passes although the Genre.fin() command returns an empty array i.e., nothing saved tot he MongoDB.
+            const res = await request(server)
+                .post('/api/genres')
+                .set('x-auth-token', token)
+                .send(
+                    {
+                        name: 'Genre One'
+                    }
+                );
+            //We don't need to query the database in this test. We even don't care about the value of the property _id. We just want to make sure that it exists.
+            //Genre saved to the MongoDB. Now, retrieve it back from MongoDB to check if it has been saved there.
+            //const genre = await Genre.find({ name: 'Genre One' });
+            console.log(res.body);
+            expect(res.body).toHaveProperty('_id');
+            expect(res.body).toHaveProperty('name', 'Genre One')
+        });
+    });
 });
 
 /* You should write and execute each test as if it is the only test in the world. This means that each test should be
