@@ -79,8 +79,6 @@ describe('/api/genres', () => {
             //console.log(typeof (res.body));//Object
             //console.log(Array.isArray(res.body));
         });
-    });
-    describe('GET /:id', () => {
         it('should return 404 status code if invalid id is passed.', async () => {
             const res = await request(server).get('/api/genres/1');
             expect(res.status).toBe(404);
