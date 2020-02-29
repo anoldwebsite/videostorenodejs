@@ -1,7 +1,7 @@
 
 const request = require('supertest');
-const { Genre } = require('../../models/Genre');
-const { User } = require('../../models/User');
+const { Genre } = require('../../../models/Genre');
+const { User } = require('../../../models/User');
 /* const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 mongoose.set('useCreateIndex', true);
@@ -21,7 +21,7 @@ let server;
 describe('/api/genres', () => {
     //Test suit for getting all genres
     beforeEach(() => {
-        server = require('../../index');
+        server = require('../../../index');
     });//Opern the server before each test.
 
     afterEach(async () => {
@@ -93,8 +93,8 @@ describe('/api/genres', () => {
         //Can't have admin in the beforeEach as 3 of the tests fail. We set admin value in each sub-suite of tests and therefore, it is better to have it outside beforeEach otherwise we have to set admin value in each test instead of each descirbe().
         let admin = false;//This will set isAdmin: false and we will change the value to admin = true in individual tests where we need to create a user as admin. 
 
-        const generateToken = async () => {
-            return await new User(
+        const generateToken = () => {
+            return new User(
                 {
                     name: 'Dilshad Rana',
                     email: 'somemail@yahoo.com',
@@ -104,10 +104,10 @@ describe('/api/genres', () => {
             ).generateAuthToken();
         };
         const exec = async () => {
-            const token = await generateToken();
-            return await request(server)
+            //const token = generateToken();
+            return request(server)
                 .post('/api/genres')
-                .set('x-auth-token', token)
+                .set('x-auth-token', await generateToken())
                 .send({ name });//It is the same as .send({ 'name': name });
         };
         describe('User not logged in', () => {

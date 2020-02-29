@@ -1,7 +1,7 @@
 require('express-async-errors');
 //const winston = require('winston');
 const LoggerService = require('../middleware/logger');
-const logger = new LoggerService('logging');
+const logger = new LoggerService('logging');//The parameter logging is the name of this module looging.js
 require('dotenv').config();
 
 module.exports = function (app) {
