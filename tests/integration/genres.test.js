@@ -93,7 +93,7 @@ describe('/api/genres', () => {
         //Can't have admin in the beforeEach as 3 of the tests fail. We set admin value in each sub-suite of tests and therefore, it is better to have it outside beforeEach otherwise we have to set admin value in each test instead of each descirbe().
         let admin = false;//This will set isAdmin: false and we will change the value to admin = true in individual tests where we need to create a user as admin. 
 
-        let generateToken = async () => {
+        const generateToken = async () => {
             return await new User(
                 {
                     name: 'Dilshad Rana',
@@ -104,7 +104,7 @@ describe('/api/genres', () => {
             ).generateAuthToken();
         };
         const exec = async () => {
-            let token = await generateToken();
+            const token = await generateToken();
             return await request(server)
                 .post('/api/genres')
                 .set('x-auth-token', token)
@@ -148,7 +148,8 @@ describe('/api/genres', () => {
                 it('should return 400, if genre is greater than 50 characters', async () => {
                     //Generate an invalid genre name i.e., more than 50 characters length
                     //new Array(14).join('Gana').length will return 52 as 52 characters are generated.
-                    name = new Array(14).join('Gana');//Generates an array with 14 items and then places string Gana between them i.e, 13 * 4 = 52 characters.
+                    //name = new Array(14).join('Gana');//Generates an array with 14 items and then places string Gana between them i.e, 13 * 4 = 52 characters.
+                    name = new Array(52).join('G');//51 will fail the test
                     const res = await exec();
                     expect(res.status).toBe(400);
                     /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
