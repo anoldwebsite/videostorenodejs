@@ -7,8 +7,8 @@ module.exports = (req, res, next) => {
     //Give access to this API endpoint after checking the token from the hearder.
     const token = req.header('x-auth-token');//Get the token from the header.
     //State 401 means that the client does not have the authentication credentials to access a resource on this server.
-    if (!token) return res.status(401).send('Access denied. No token provided.');
-    try {
+    if (!token) return res.status(401).send('Access denied. No token provided.');//First execution path - No token. So the file needs three tests for testing as we have three execution paths in the file.
+    try {//Second execution path - valid token - So the file needs three tests for testing as we have three execution paths in the file.
         //throw new Error();
         //We encode the payload in a method in the userSchema in the model User in User.js. Here, we decode it.
         const decodedPayload = jwt.verify(token, config.get('jwtPrivateKey'));
@@ -20,7 +20,7 @@ module.exports = (req, res, next) => {
         pass control to the next middleware function.
         */
         next();
-    } catch (error) {
+    } catch (error) {//Third execution path - in case of invalid token. So the file needs three tests for testing as we have three execution paths in the file.
         res.status(400).send('Invalid token');
     }
 

@@ -80,11 +80,11 @@ router.delete('/', [auth, admin], async (req, res) => {
 });
 
 //Get genre with the given id
-router.get('/:id', validateObjectId , async (req, res) => {
+router.get('/:id', validateObjectId, async (req, res) => {
     const genre = await Genre.findById(req.params.id);
     if (genre) return res.send(genre);
     logger.info(`Genre with id: ${req.params.id} does not exist in the database.`);
-    return res.status(400).send(`Genre with id: ${req.params.id} was not found. The database returned ${genre}.`);
+    return res.status(404).send(`Genre with id: ${req.params.id} was not found. The database returned ${genre}.`);
 });
 
 module.exports = router;

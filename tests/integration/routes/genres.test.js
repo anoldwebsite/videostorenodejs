@@ -2,6 +2,7 @@
 const request = require('supertest');
 const { Genre } = require('../../../models/Genre');
 const { User } = require('../../../models/User');
+const mongoose = require('mongoose');
 /* const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 mongoose.set('useCreateIndex', true);
@@ -81,6 +82,13 @@ describe('/api/genres', () => {
         });
         it('should return 404 status code if invalid id is passed.', async () => {
             const res = await request(server).get('/api/genres/1');
+            expect(res.status).toBe(404);
+        });
+        it('should return 404 if no genre with the given id exists.', async () => {
+            const id = mongoose.Types.ObjectId();
+            //console.log(mongoose.Types.ObjectId.isValid(id));//true
+            const res = await request(server).get('/api/genres/' + id);
+            //console.log(`res.clientError: ${res.clientError}, res.badRequest: ${res.badRequest}, res.text: ${res.text}`);//This helped debug. res.clientError: true, res.badRequest: true, res.text: Genre with id: 5e5b352390f6360ae72c644b was not found. The database returned null.
             expect(res.status).toBe(404);
         });
     });

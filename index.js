@@ -33,7 +33,7 @@ app.set('views', './views');//Telling the app that the  pug templates are in the
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));//Make the server listening to requests.
 
-module.exports = server;
+module.exports = server; 
 
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.
 //const startupDebugger = require('debug')('app:startup');
