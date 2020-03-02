@@ -26,7 +26,7 @@ describe('auth middleware', () => {
         const next = jest.fn();
 
         auth(req, res, next);
-        //expect(req.user).toBeDefined();//This is not enough.
+        //expect(req.user).toBeDefined();//This test is not enough although it passes.
         expect(req.user).toMatchObject(user);//Use .toMatchObject to check that a JavaScript object matches a subset of the properties of an object.
     });
 });

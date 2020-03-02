@@ -7,7 +7,7 @@ const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('genres');
-
+const mongoose = require('mongoose');
 
 //Get all the genres from the database.
 router.get('/', async (req, res, next) => {
@@ -41,13 +41,23 @@ router.post('/', [auth, admin], async (req, res) => {
 //put is used to update a resource in the mongodb
 router.put('/:id', [auth, admin], async (req, res) => {
     const error = validate(req.body);
-    if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the customer with the schema!");
+    if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the Genre with the schema!");
+    //Check if the id of the genre is valid
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        logger.error('Invalid Genre id!', req.params);
+        return res.status(404).send(`${req.params.id} is an invalid id.`);
+    }
+    //Check if a genre with this id exists.
+    const genreExists = await Genre.findById(req.params.id);
+    if (!genreExists) return res.status(404).send(`${req.params.id} is an invalid id.`);
+
     //Check if genre already exists.
     const existingGenre = await Genre.find({ name: req.body.name });
     if (existingGenre && existingGenre.length > 0) {
-        logger.info('Genere already exists in the database!', existingGenre);
+        logger.info('Genere with this name already exists in the database!', existingGenre);
         return res.status(400).send(`${req.body.name} already exists in the database.`);
     }
+
     const genre = await Genre.findByIdAndUpdate(req.params.id,
         {
             name: req.body.name
@@ -58,8 +68,10 @@ router.put('/:id', [auth, admin], async (req, res) => {
         }
     );
     if (genre) return res.send(genre);
+    //Still here
     logger.info('Genre could not be edited!', genre);
-    return res.status(400).send(`Genre with id: ${re.params.id} was not updated. The update request returned ${genre}.`);
+    /* The HTTP 404, 404 Not Found, 404, Page Not Found, or Server Not Found error message is a Hypertext Transfer Protocol (HTTP) standard response code, in computer network communications, to indicate that the browser was able to communicate with a given server, but the server could not find what was requested.*/
+    return res.status(404).send(`Genre with id: ${re.params.id} was not updated. The update request returned ${genre}.`);
 });
 
 //delete is used to delete a genre/resouce from the MongoDB
