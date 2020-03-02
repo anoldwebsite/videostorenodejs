@@ -2,3 +2,4 @@ node_modules
 readme.txt
 combined.log
 error.log
+/coverage
