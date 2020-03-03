@@ -76,8 +76,10 @@ router.put('/:id', [auth, admin], async (req, res) => {
 
 //delete is used to delete a genre/resouce from the MongoDB
 router.delete('/:id', [auth, admin], async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Id: ${req.params.id} is invalid`);
     const genre = await Genre.findByIdAndDelete(req.params.id);
-    if (genre) return res.send(`The Genre ${genre} was deleted from the database.`);
+    //if (genre) return res.send(`The Genre ${genre} was deleted from the database.`);
+    if (genre) return res.send(genre);
     logger.info('The Genre was not deleted.', req.body.name);
     return res.status(404).send(`Genre with id: ${req.params.id} was not deleted. The database returned ${genre}.`);
 });
@@ -87,6 +89,7 @@ router.delete('/', [auth, admin], async (req, res) => {
     //Genre.remove( {} ) //It works but is deprecated
     const genres = await Genre.deleteMany({});
     if (genres) return res.send(`Number of genres in the database: ${genres.n} Number of genres Deleted: ${genres.deletedCount}`);
+    //if (genres) return res.send(`${genres.deletedCount}`);
     logger.info('The Genres were not deleted.');
     return res.status(400).send(`Genres were not deleted. The database returned ${genres}.`);
 });

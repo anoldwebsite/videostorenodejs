@@ -51,7 +51,7 @@ describe('auth middleware', () => {
         admin = true; //This line and the next commented line is needed for generating a valid token for a user that has admin rights.
         token = await generateToken();//This line and the above commented line is needed for generating a valid token for a user that has admin rights.
         const res = await exec();
-        expect(res.status).toBe(200);
+        expect(res.status).toBe(200); 
     });
     /*
     We will write a unit test for the function in auth.js to make sure that if the client sends a valid json web token, as in the test above, 

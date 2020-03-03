@@ -199,11 +199,12 @@ describe('/api/genres', () => {
                 .send({ name: newName });
         };
         beforeEach(async () => {
+            //Before each test we create a new genre with name 'Genre One'. Then in the function exec(), we update this genre changing the name property's value to updateName
             genre = new Genre({ name: 'Genre One' });
             await genre.save();
             id = genre._id;
             newName = 'updatedName';
-            admin = true;
+            admin = true;//In any test, where you need a token issued with a non-admin privileges, set admin = false inside that test and call again function generateToken();
             token = generateToken();//This will generate an admin token. For non-admin token, generate a new one in the indiual test after setting admin = false;
         });
         it('should return 401 if client is not logged in', async () => {
@@ -246,6 +247,106 @@ describe('/api/genres', () => {
             const res = await exec();
             expect(res.body).toHaveProperty('_id');
             expect(res.body).toHaveProperty('name', newName);
+        });
+    });
+    describe('DELETE /:id', () => {
+        let token, genre, id, admin;
+        const generateToken = () => {
+            return new User(
+                {
+                    name: 'Dilshad Rana',
+                    email: 'somemail@yahoo.com',
+                    password: 'Somepassword2020?',
+                    isAdmin: admin//true for admin rights, false for non-admin user.
+                }
+            ).generateAuthToken();
+        };
+        const exec = async () => {
+            //const token = generateToken();
+            return await request(server)
+                .delete('/api/genres/' + id)
+                .set('x-auth-token', token)
+                .send();
+        };
+        beforeEach(async () => {
+            //Before each test we create a new genre with name 'Genre One'. Then in the function exec(), we update this genre changing the name property's value to updateName
+            genre = new Genre({ name: 'Genre One' });
+            await genre.save();
+            id = genre._id;
+            admin = true;//In any test, where you need a token issued with a non-admin privileges, set admin = false inside that test and call again function generateToken();
+            token = generateToken();//This will generate an admin token. For non-admin token, generate a new one in the indiual test after setting admin = false;
+        });
+        it('should return 401 if client is not logged in', async () => {
+            token = '';
+            const res = await exec();
+            expect(res.status).toBe(401);
+        });
+        it('should return 403 if client is logged in but not admin', async () => {
+            admin = false;
+            token = generateToken();
+            const res = await exec();
+            expect(res.status).toBe(403);
+        });
+        it('should return 404 if genre id is invalid', async () => {
+            id = 1;
+            const res = await exec();
+            expect(res.status).toBe(404);
+        });
+        it('should return 404 if no genre was found with the given id', async () => {
+            id = mongoose.Types.ObjectId();//Generate a valid Genre id using mongoose
+            const res = await exec();
+            expect(res.status).toBe(404);
+        });
+        it('should delete the genre if the input is valid', async () => {
+            await exec();
+            const genre = await Genre.findById(id);
+            expect(genre).toBeNull();
+        });
+        it('should return the deleted genre', async () => {
+            const res = await exec();
+            expect(res.body).toHaveProperty('_id', genre._id.toHexString());
+            expect(res.body).toHaveProperty('name', genre.name);
+        });
+    });
+    describe('DELETE /', () => {
+        let token, genre, admin;
+        const generateToken = () => {
+            return new User(
+                {
+                    name: 'Dilshad Rana',
+                    email: 'somemail@yahoo.com',
+                    password: 'Somepassword2020?',
+                    isAdmin: admin//true for admin rights, false for non-admin user.
+                }
+            ).generateAuthToken();
+        };
+        const exec = async () => {
+            //const token = generateToken();
+            return await request(server)
+                .delete('/api/genres/')
+                .set('x-auth-token', token)
+                .send();
+        };
+        beforeEach(async () => {
+            await Genre.collection.insertMany(
+                [
+                    { name: 'Genre One' },
+                    { name: 'Genre Two' },
+                    { name: 'Genre Three' }
+                ]
+            );
+            admin = true;//In any test, where you need a token issued with a non-admin privileges, set admin = false inside that test and call again function generateToken();
+            token = generateToken();//This will generate an admin token. For non-admin token, generate a new one in the indiual test after setting admin = false;
+        });
+
+        it('should delete all the genres if the input is valid', async () => {
+            await exec();
+            const genres = await Genre.find({});
+            expect(genres.length).toBe(0);
+        });
+        it('should return the number of deleted genres', async () => {
+            const res = await exec();
+            expect(res.text).toMatch(/3/);//Three documents delete from the Colelction Genre. https://jestjs.io/docs/en/using-matchers
         });
     });
 });
