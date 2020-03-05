@@ -6,6 +6,7 @@ const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('customers');
+const mongoose = require('mongoose');
 
 //Get all the customers from the database
 router.get('/', async (req, res) => {
@@ -17,10 +18,11 @@ router.get('/', async (req, res) => {
 
 //Get a customer with a given id
 router.get('/:id', async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send('Invalid id');
   const customer = await Customer.findById(req.params.id);
   if (customer) return res.send(customer);
   logger.info(`Customer with id: $${req.params.id} was NOT found!`, req.params.id);
-  return res.status(400).send(`Customer with id: $${req.params.id} was NOT found!`);
+  return res.status(404).send(`Customer with id: $${req.params.id} was NOT found!`);
 });
 
 //Edit an existing customer's data
@@ -29,7 +31,9 @@ router.get('/:id', async (req, res) => {
 router.put('/:id', [auth, admin], async (req, res) => {
   const error = validate(req.body);
   if (error) return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
-
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
+  const customerExists = await Customer.findById(req.params.id);
+  if (!customerExists) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
   const customer = await Customer.findByIdAndUpdate(
     req.params.id,
     {
@@ -71,8 +75,12 @@ router.post('/', [auth, admin], async (req, res) => {
 
 //Delete the customer with a given id
 router.delete('/:id', [auth, admin], async (req, res) => {
+  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Customer id is not of mongoose type: ${req.params.id}`);
+  const customerExists = await Customer.findById(req.params.id);
+  if (!customerExists) return res.status(404).send(`Invalid customer id: ${req.params.id}`);
+
   const customer = await Customer.findByIdAndDelete(req.params.id);
-  if (customer) return res.send(`The customer with the following data was deleted: ${customer}`);
+  if (customer) return res.status(200).send(customer);
   logger.info('The customer could not be deleted.', { "customer id:": req.params.id });
   return res.status(400).send(`Customer with id: ${req.params.id} was not found! The database returned ${customer}.`);
 });
@@ -80,7 +88,7 @@ router.delete('/:id', [auth, admin], async (req, res) => {
 //Deleting all customers at one go
 router.delete('/', [auth, admin], async (req, res) => {
   const customers = await Customer.deleteMany({});
-  if (customers) return res.send(`Number of Customers in the database: ${obj.n} Number of Customers Deleted: ${obj.deletedCount}`);
+  if (customers) return res.send(`Number of Customers in the database: ${customers.n} Number of Customers Deleted: ${customers.deletedCount}`);
   logger.info('No customers were deleted!');
   return res.status(400).send(`No customers were deleted! The request for deletion of all customers returned ${customers}`);
 });

@@ -55,7 +55,7 @@ const Customer = mongooose.model('Customer', customerSchema);
 function validateCustomer(customer) {
   const schema = Joi.object({
     name: Joi.string()
-      .min(3)
+      .min(4)
       .max(50),
     phone: Joi.string()
       .min(10)

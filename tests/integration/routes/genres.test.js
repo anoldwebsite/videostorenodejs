@@ -54,6 +54,7 @@ describe('/api/genres', () => {
             const res = await request(server).get('/api/genres');
             expect(res.status).toBe(200);//200 is status code for ok.
             expect(res.body.length).toBe(2);//2 means two Genre objects in the database. res.body retrns an array.
+            //console.log(res.body);
             //console.log(typeof (res.body));//Object
             //console.log(Array.isArray(res.body));//True
             expect(res.body.some(g => g.name === 'Genre One')).toBeTruthy();
@@ -61,6 +62,8 @@ describe('/api/genres', () => {
                 A function that accepts up to three arguments. The some method calls the callbackfn function for each element in the array until the callbackfn returns a value which is coercible to the Boolean value true, or until the end of the array.
                 Determines whether the specified callback function returns true for any element of an array.
             */
+            //console.log(res.body[0].name === 'Genre One');
+            //console.log(res.body[1].name === 'Genre Two');
             expect(res.body.some(g => g.name === 'Genre Two')).toBeTruthy();
         });
     });
@@ -226,7 +229,7 @@ describe('/api/genres', () => {
             id = 1;//invalid genre id
             newName = 'Genre Three';//The design of our app does not allow sending the same name as name of Genre is the only document in the collection Genre, and it is a put request, so the name must be a new one and not the old one.
             const res = await exec();
-            console.log(`res.clientError: ${res.clientError}, res.serverError: ${res.serverError}, res.badRequest: ${res.badRequest}, res.path = ${res.path}, res.text: ${res.text}`);//This helped debug. res.clientError: true, res.badRequest: true, res.text: Genre with id: 5e5b352390f6360ae72c644b was not found. The database returned null.
+            //console.log(`res.clientError: ${res.clientError}, res.serverError: ${res.serverError}, res.badRequest: ${res.badRequest}, res.path = ${res.path}, res.text: ${res.text}`);//This helped debug. res.clientError: true, res.badRequest: true, res.text: Genre with id: 5e5b352390f6360ae72c644b was not found. The database returned null.
 
             expect(res.status).toBe(404);
         });
