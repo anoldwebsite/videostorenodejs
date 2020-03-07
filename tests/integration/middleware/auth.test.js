@@ -18,8 +18,8 @@ describe('auth middleware', () => {
             }
         ).generateAuthToken();
     }
-    const exec = () => {
-        return request(server).post('/api/genres').set('x-auth-token', token).send({ name: 'Genre One' });//token is converted to string.
+    const exec = async () => {
+        return await request(server).post('/api/genres').set('x-auth-token', token).send({ name: 'Genre One' });//token is converted to string.
     };
     beforeEach(() => {
         server = require('../../../index');
@@ -50,7 +50,7 @@ describe('auth middleware', () => {
         //In this app, one must be an admin to be able to post a genre, which we are doing: request(server).post('/api/genres').set('x-auth-token', token).send({ name: 'Genre One' });
         admin = true; //This line and the next commented line is needed for generating a valid token for a user that has admin rights.
         token = generateToken();//This line and the above commented line is needed for generating a valid token for a user that has admin rights.
-        const res = await exec();
+        const res = await exec(); 
         expect(res.status).toBe(200);
     });
     /*

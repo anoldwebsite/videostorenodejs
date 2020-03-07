@@ -7,6 +7,7 @@ const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('movies');
+const mongoose = require('mongoose');
 
 //Get all the movies from the database
 router.get('/', async (req, res) => {
@@ -19,10 +20,11 @@ router.get('/', async (req, res) => {
 
 //Get a movie with a given id
 router.get('/:id', async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Id: ${req.params.id}`);
     const movie = await Movie.findById(req.params.id);
-    if (movie) return res.send(`Movie you searched: ${movie}`);
-    logger.info('The movie could not be found in the database.', req.params.id);
-    return res.send(`The movie with id: ${req.params.id} could not be deleted. Got from the database: ${movie}`);
+    if (movie) return res.send(movie);
+    logger.info(`Movie with id: ${req.params.id} does not exist in the database. The databse returned ${movie}`);
+    return res.stauts(404).send(`No Movie Found for id: ${req.params.id}. The databse returned ${movie}`);
 });
 
 //Create a new movie in the database
@@ -33,6 +35,7 @@ router.post('/', [auth, admin], async (req, res) => {
     if (error) {
         return res.status(400).send("New movie could not be created in the database due to the non-conformity of the customer with the schema!");
     }
+
     const genre = await Genre.findById(req.body.genreId);
     if (!genre) return res.status(400).send('Invalid genre');
 
@@ -58,6 +61,9 @@ router.post('/', [auth, admin], async (req, res) => {
 router.put('/:id', [auth, admin], async (req, res) => {
     const error = validateMovie(req.body);
     if (error) return res.status(400).send("The data of the movie could not be updated due to the non-conformity of the data with the schema as checked by Joi");
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Movie id: ${req.params.id} is invalid id.`);
+    const movieExist = await Movie.findById(req.params.id);
+    if (!movieExist) return res.status(404).send(`Movie with id: ${req.params.id} is not found.`);
     const genre = await Genre.findById(req.body.genreId);
     if (!genre) return res.status(400).send('Invalid genre.');
 
@@ -84,15 +90,18 @@ router.put('/:id', [auth, admin], async (req, res) => {
             runValidators: true //Validate the new object before updating
         }
     );
-    if (movie) return res.send(`Details of updated movie: ${movie}`);
+    if (movie) return res.send(movie);
     logger.info('The movie could not be edited.', req.body);
-    return res.status(400).send(`Movie with id: ${req.params.id} could not be updated. Database gave: ${movie}`);
+    return res.status(404).send(`Movie with id: ${req.params.id} does not exist in the database.`);
 });
 
 //Delete one movie the id of which is given 
 router.delete('/:id', [auth, admin], async (req, res) => {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send('Invalid Movie Id');
+    const movieExists = await Movie.findById(req.params.id);
+    if (!movieExists) return res.status(404).send('No movie found for this id.');
     const movie = await Movie.findByIdAndDelete(req.params.id);
-    if (movie) return res.send(`Deleted movie, details of which are: ${movie}`);
+    if (movie) return res.send(movie);
     logger.info('The movie with the given id could not be deleted.', req.params.id);
     return res.status(404).send(`Movie with id: ${req.params.id} could not be deleted from the database. The database returned ${error.message}`);
 });
