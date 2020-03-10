@@ -100,7 +100,7 @@ describe('/api/movies', () => {
             expect(res.status).toBe(400);
         });
         it('should return the movie if it is valid', async () => {
-            console.log(`genreId: ${genreId}`);
+            //console.log(`genreId: ${genreId}`);
             const res = await exec();
             /*             console.log('*************************************');
                         console.log(res.text);
@@ -115,7 +115,7 @@ describe('/api/movies', () => {
         it('should save the movie if input is valid', async () => {
             await exec();
             const movie = await Movie.find({ title: 'Movie One' });
-            console.log(movie)
+            //console.log(movie)
             expect(movie).not.toBeNull();
             expect(movie[0].title).toBe(title);
         });
@@ -189,7 +189,7 @@ describe('/api/movies', () => {
             genreId = mongoose.Types.ObjectId();
             const res = exec();
             expect(res.status).toBe(400);
-        }); 
+        });
         it('should update the movie, if input is valid', async () => {
             await exec();
             const updatedMovie = await Movie.findById(movieId);

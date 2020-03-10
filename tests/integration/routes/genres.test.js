@@ -51,7 +51,7 @@ describe('/api/genres', () => {
                     { name: 'Genre Two' }
                 ]
             );
-            const res = await request(server).get('/api/genres');
+            const res = await request(server).get('/api/genres/'); 
             expect(res.status).toBe(200);//200 is status code for ok.
             expect(res.body.length).toBe(2);//2 means two Genre objects in the database. res.body retrns an array.
             //console.log(` =====================> ${res.body.length}`);
@@ -71,7 +71,6 @@ describe('/api/genres', () => {
         it('should return a genre if a valid id is passed', async () => {
             const genre = new Genre({ name: 'Genre One' });//Creating a genre
             await genre.save();//Saving the genre to the MongoDB
-            //const res = await request(server).get('/api/genres/' + genre._id);
             const res = await request(server).get('/api/genres/' + genre._id);
             expect(res.status).toBe(200);
             //expect(res.body).toMatchObject(genre); 
