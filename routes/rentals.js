@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { Rental, validateRental } = require('../models/Rental');
 const { Transaction } = require('../models/Transaction');
 const { Customer } = require('../models/Customer');
@@ -5,6 +6,7 @@ const { Movie } = require('../models/Movie');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('rentals');
@@ -12,9 +14,10 @@ const logger = new LoggerService('rentals');
 //Get all the rentals.
 router.get('/', async (req, res) => {
     const rentals = await Rental.find().sort('-dateOut');
-    if (rentals) return res.send(rentals);
+    if (rentals && rentals.length > 0) return res.send(rentals);
+
     logger.info('Something went wrong! No rentals found or could not be retrieved!');
-    return res.status(400).send('No rentals found!');
+    return res.status(404).send('No rentals found!');
 });
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
@@ -30,12 +33,12 @@ router.post('/', auth, async (req, res) => {
     */
 
     const customer = await Customer.findById(req.body.customerId);
-    if (!customer) return res.status(400).send('Invalid customer. Customer not found in the database!');
+    if (!customer) return res.status(404).send('Customer not found in the database!');
 
     const movie = await Movie.findById(req.body.movieId);
-    if (!movie) return res.status(400).send('Invalid movie.');
+    if (!movie) return res.status(404).send('Movie Not found in the database!');
 
-    if (movie.numberInStock === 0 && req.body.rentalType === 'borrow') return res.status(400).send('Movie not in stock.');
+    if (movie.numberInStock === 0 && req.body.rentalType === 'borrow') return res.status(400).send('Out of stock!');
 
     let alreadyBorrowedThisOne = await checkIfAlreadyBorrowedThisMovie(movie, customer);
 
@@ -120,13 +123,12 @@ router.post('/', auth, async (req, res) => {
     res.status(400).send("There is some problem!. You can't rent/return a movie now.");
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', validateObjectId, async (req, res) => {
     const rental = await Rental.findById(req.params.id);
-    if (!rental) {
-        logger.info('Movie with the given id could not be found.', req.params.id);
-        return res.status(404).send(`Rental with id: ${req.params.id} was not found!`);
-    }
-    return res.send(rental);
+    if (rental) return res.send(rental);
+
+    logger.info('Movie with the given id could not be found.', req.params.id);
+    return res.status(404).send(`Rental with id: ${req.params.id} was not found!`);
 });
 
 async function checkIfAlreadyBorrowedThisMovie(movie, customer) {

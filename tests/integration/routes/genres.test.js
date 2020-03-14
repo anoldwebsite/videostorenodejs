@@ -45,13 +45,14 @@ describe('/api/genres', () => {
 
     describe('GET /', () => {
         it('should return all genres', async () => {
+            await Genre.collection.deleteMany({});
             await Genre.collection.insertMany(
                 [
                     { name: 'Genre One' },
                     { name: 'Genre Two' }
                 ]
             );
-            const res = await request(server).get('/api/genres/'); 
+            const res = await request(server).get('/api/genres/');
             expect(res.status).toBe(200);//200 is status code for ok.
             expect(res.body.length).toBe(2);//2 means two Genre objects in the database. res.body retrns an array.
             //console.log(` =====================> ${res.body.length}`);
@@ -65,6 +66,10 @@ describe('/api/genres', () => {
             //console.log(res.body[0].name === 'Genre One');
             //console.log(res.body[1].name === 'Genre Two');
             expect(res.body.some(g => g.name === 'Genre Two')).toBeTruthy();
+        });
+        it('should return 400, if no genre are found in the database.', async () => {
+            const res = await request(server).get('/api/genres');
+            expect(res.status).toBe(400);
         });
     });
     describe('GET /:id', () => {
@@ -106,20 +111,17 @@ describe('/api/genres', () => {
         let admin = false;//This will set isAdmin: false and we will change the value to admin = true in individual tests where we need to create a user as admin. 
 
         const generateToken = () => {
-            return new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'somemail@yahoo.com',
-                    password: 'Somepassword2020?',
-                    isAdmin: admin//true for admin rights, false for non-admin user.
-                }
-            ).generateAuthToken();
+            const user = {
+                _id: mongoose.Types.ObjectId().toHexString(),
+                isAdmin: admin
+            }
+            return new User(user).generateAuthToken();
         };
         const exec = async () => {
             //const token = generateToken();
             return request(server)
                 .post('/api/genres')
-                .set('x-auth-token', await generateToken())
+                .set('x-auth-token', generateToken())
                 .send({ name });//It is the same as .send({ 'name': name });
         };
         describe('User not logged in', () => {
@@ -147,6 +149,11 @@ describe('/api/genres', () => {
                     //console.log(res.body);
                     expect(res.body).toHaveProperty('_id');
                     expect(res.body).toHaveProperty('name', 'Genre One')
+                });
+                it('should not save the genre if a genre with the same name already exists in the database.', async () => {
+                    await exec();
+                    const res = await exec();
+                    expect(res.status).toBe(400);
                 });
             });
             describe('invalid genre name', () => {

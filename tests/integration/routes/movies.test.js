@@ -63,14 +63,20 @@ describe('/api/movies', () => {
     describe('POST /', () => {
         let admin, token, genreId, title, numberInStock, dailyRentalRate;
         const generateToken = () => {
-            return new User(
+            const user = {
+                _id: mongoose.Types.ObjectId().toHexString(),
+                isAdmin: admin
+            }
+            token = new User(user).generateAuthToken();
+            return token;
+/*             return new User(
                 {
                     name: 'Dilshad Rana',
                     email: 'somemail@yahoo.com',
                     password: 'Somepassword2020?',
                     isAdmin: admin//true for admin rights, false for non-admin user.
                 }
-            ).generateAuthToken();
+            ).generateAuthToken(); */
         };
         beforeEach(async () => {
             admin = true;
@@ -83,7 +89,7 @@ describe('/api/movies', () => {
         });
         const exec = async () => {
             return request(server)
-                .post('/api/movies')
+                .post('/api/movies/')
                 .set('x-auth-token', token)
                 .send(
                     {
@@ -185,14 +191,14 @@ describe('/api/movies', () => {
                     }
                 );
         };
-        it('should return 400, if no genre is found in the database for the id supplied to make a movie', async () => {
+        it('should return 404, if no genre is found in the database for the id supplied to make a movie', async () => {
             genreId = mongoose.Types.ObjectId();
             const res = exec();
-            expect(res.status).toBe(400);
+            expect(res.status).toBe(404);
         });
         it('should update the movie, if input is valid', async () => {
             await exec();
-            const updatedMovie = await Movie.findById(movieId);
+            const updatedMovie = await Movie.findById(movieId); 
             expect(updatedMovie.title).toBe(newTitle);
         });
         it('should return the updated movie if input is valid', async () => {

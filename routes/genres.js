@@ -12,7 +12,8 @@ const mongoose = require('mongoose');
 //Get all the genres from the database.
 router.get('/', async (req, res, next) => {
     const genres = await Genre.find().sort('name');
-    if (genres) return res.send(genres);
+    if (genres && genres.length > 0) return res.send(genres);
+
     logger.info('Could not get the genres.', req.body);
     return res.status(400).send(`Can't fetch data from the database. The request returned ${genres}`);
 });
