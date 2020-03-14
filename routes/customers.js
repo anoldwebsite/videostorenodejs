@@ -7,6 +7,7 @@ const admin = require('../middleware/admin');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('customers');
 const mongoose = require('mongoose');
+const validateObjectId = require('../middleware/validateObjectId');
 
 //Get all the customers from the database
 router.get('/', async (req, res) => {
@@ -17,8 +18,8 @@ router.get('/', async (req, res) => {
 });
 
 //Get a customer with a given id
-router.get('/:id', async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send('Invalid id');
+router.get('/:id', validateObjectId, async (req, res) => {
+  //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send('Invalid id');
   const customer = await Customer.findById(req.params.id);
   if (customer) return res.send(customer);
   logger.info(`Customer with id: $${req.params.id} was NOT found!`, req.params.id);
@@ -28,10 +29,10 @@ router.get('/:id', async (req, res) => {
 //Edit an existing customer's data
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to edit the data.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.put('/:id', [auth, admin], async (req, res) => {
+router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
   const error = validate(req.body);
   if (error) return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
+  //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
   const customerExists = await Customer.findById(req.params.id);
   if (!customerExists) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
   const customer = await Customer.findByIdAndUpdate(
@@ -74,8 +75,8 @@ router.post('/', [auth, admin], async (req, res) => {
 });
 
 //Delete the customer with a given id
-router.delete('/:id', [auth, admin], async (req, res) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Customer id is not of mongoose type: ${req.params.id}`);
+router.delete('/:id', validateObjectId, [auth, admin], async (req, res) => {
+  //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Customer id is not of mongoose type: ${req.params.id}`);
   const customerExists = await Customer.findById(req.params.id);
   if (!customerExists) return res.status(404).send(`Invalid customer id: ${req.params.id}`);
 

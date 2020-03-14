@@ -40,14 +40,14 @@ router.post('/', [auth, admin], async (req, res) => {
 });
 
 //put is used to update a resource in the mongodb
-router.put('/:id', [auth, admin], async (req, res) => {
+router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the Genre with the schema!");
     //Check if the id of the genre is valid
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+/*     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         logger.error('Invalid Genre id!', req.params);
         return res.status(404).send(`${req.params.id} is an invalid id.`);
-    }
+    } */
     //Check if a genre with this id exists.
     const genreExists = await Genre.findById(req.params.id);
     if (!genreExists) return res.status(404).send(`${req.params.id} is an invalid id.`);
@@ -76,8 +76,8 @@ router.put('/:id', [auth, admin], async (req, res) => {
 });
 
 //delete is used to delete a genre/resouce from the MongoDB
-router.delete('/:id', [auth, admin], async (req, res) => {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Id: ${req.params.id} is invalid`);
+router.delete('/:id', validateObjectId ,[auth, admin], async (req, res) => {
+    //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Id: ${req.params.id} is invalid`);
     const genre = await Genre.findByIdAndDelete(req.params.id);
     //if (genre) return res.send(`The Genre ${genre} was deleted from the database.`);
     if (genre) return res.send(genre);

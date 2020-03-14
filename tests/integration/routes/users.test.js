@@ -75,8 +75,8 @@ describe('/api/users', () => {
         it('should return 401, if invalid token is passed', async () => {
             const user = new User({ name: 'Rana dilshad', email: 'dilshad.rana@protonmail.com', password: 'ranaMota123?', isAdmin: false });
             await user.save();
-            //Not sending token at all.
-            const res = await request(server).get('/api/users/' + 'me');
+            token = '';//Not sending token at all.
+            const res = await request(server).get('/api/users/' + 'me').set('x-auth-token', token).send();
             expect(res.status).toBe(401);
         });
     });
@@ -420,4 +420,4 @@ describe('/api/users', () => {
             expect(res.text).toMatch(/Mota Saheb/);
         });
     });
-});
+}); 

@@ -4,7 +4,7 @@ const config = require('config');
 
 //The third argument, next, is used to pass control to the next middleware function in the request processing pipeline.
 module.exports = (req, res, next) => {
-    //Give access to this API endpoint after checking the token from the hearder.
+    //Give access to this API endpoint after checking the token from the header.
     const token = req.header('x-auth-token');//Get the token from the header.
     //State 401 means that the client does not have the authentication credentials to access a resource on this server.
     if (!token) return res.status(401).send('Access denied. No token provided.');//First execution path - No token. So the file needs three tests for testing as we have three execution paths in the file.
