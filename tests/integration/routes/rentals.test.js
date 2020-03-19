@@ -142,7 +142,7 @@ describe('/api/rentals', () => {
             await Movie.findByIdAndUpdate(movieId, { numberInStock: 1 });
             await exec();//Borrow the only copy available.
             const res = await exec();//Try to borrow another copy when it is out of stock.
-            console.log(res.text);
+            //console.log(res.text);
             expect(res.text).toMatch(/Out of stock!/);
             expect(res.status).toBe(400);
         });
@@ -170,7 +170,7 @@ describe('/api/rentals', () => {
         });
         it('should return 404 if no rentals are found', async () => {
             const res = await request(server).get('/api/rentals');
-            console.log(res.body);
+            //console.log(res.body);
             expect(res.status).toBe(404);
         });
     });
@@ -189,12 +189,12 @@ describe('/api/rentals', () => {
         });
         it('should return 404, if an invalid rental id is input', async () => {
             const res = await request(server).get('/api/rentals/1');
-            console.log(res.text);
+            //console.log(res.text);
             expect(res.status).toBe(404);
         });
         it('should return 404, if no rental record is found having this rental id!', async () => {
             const res = await request(server).get('/api/rentals/' + mongoose.Types.ObjectId());
-            console.log(res.text);
+            //console.log(res.text);
             expect(res.status).toBe(404);
         });
     });

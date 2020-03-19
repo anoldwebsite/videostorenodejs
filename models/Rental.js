@@ -100,7 +100,6 @@ function validateRental(rental) {
     //rentalType: Joi.string().required()
   });
   const { error } = schema.validate(rental);
-  console.log(error);
   return error;
 }
 

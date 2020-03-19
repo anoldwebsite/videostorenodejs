@@ -388,7 +388,7 @@ describe('/api/users', () => {
         it('should return 403, if user is logged in but is not admin', async () => {
             let someUser = new User({ name: 'Dilshad Rana', email: 'some.mail@yahoo.com', password: 'Somepassword2020?', isAdmin: false });
             await someUser.save();
-            console.log(await User.findById(someUser._id));
+            //console.log(await User.findById(someUser._id));
             const someToken = someUser.generateAuthToken();
             const res = await request(server)
                 .put('/api/users/' + someUser._id)

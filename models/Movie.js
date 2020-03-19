@@ -53,7 +53,6 @@ function validateMovie(movie) {//movie = req.body
         }
     );
     const { error } = schema.validate(movie);
-    console.log(error);
     return error;
 };
 

@@ -274,7 +274,6 @@ describe('/api/customers', () => {
         });
         it('should return the number of customers deleted if the input is valid', async () => {
             const res = await request(server).delete('/api/customers').set('x-auth-token', token).send();
-            //console.log(res.text)
             expect(res.text).toMatch(/3/);
         });
     });
