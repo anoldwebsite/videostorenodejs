@@ -10,8 +10,8 @@ describe('/api/customers', () => {
         server = require('../../../index');
     });
     afterEach(async () => {
-        server.close();//Ask the server to stop accepting new connections. 
         await Customer.deleteMany({});
+        await server.close();//Ask the server to stop accepting new connections. 
     });
     describe('GET /', () => {
         it('should return all customers', async () => {

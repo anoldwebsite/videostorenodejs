@@ -12,7 +12,7 @@ describe('Checking Authorization', () => {
     afterEach(async () => {
         await User.deleteMany({});
         await Genre.deleteMany({});//Reset the collection Genre by deleteing all documents for the next test.
-        server.close();//Asks the server to stop accepting new connections but the current connection is still there untill it is not needed anymore.
+        await server.close();//Asks the server to stop accepting new connections but the current connection is still there untill it is not needed anymore.
     });
 
     describe('POST /', () => {
@@ -53,7 +53,7 @@ describe('Checking Authorization', () => {
         });
         it('should return 400 with password less than 8 characters input', async () => {
             const res = await request(server).post('/api/auth').send({ email: 'mota.mail@yahoo.com', password: 'Pd2020?' });
-            expect(res.status).toBe(400); 
+            expect(res.status).toBe(400);
         });
         it('should return 400 with password less than 8 characters input', async () => {
             let longPassword = (new Array(124).join('Mo')) + 'Uuuuuuu???';//More than 255 characters.//256 characters.
@@ -118,10 +118,10 @@ describe('Checking Authorization', () => {
             const res = await exec();
             expect(res.status).toBe(200);
         });
-        /*
-        We will write a unit test for the function in auth.js to make sure that if the client sends a valid json web token, as in the test above, 
-        then the req.user in auth.js will be populated with the payload of the json web token. Since this module is for integration testing, so go
-        to the module auth.test.js in the middleware folder inside the unit folder.
-        */
+
+        //We will write a unit test for the function in auth.js to make sure that if the client sends a valid json web token, as in the test above,
+        //then the req.user in auth.js will be populated with the payload of the json web token. Since this module is for integration testing, so go
+        //to the module auth.test.js in the middleware folder inside the unit folder.
+
     });
 });

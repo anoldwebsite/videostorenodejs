@@ -62,7 +62,7 @@ router.post('/', [auth, admin], async (req, res) => {
 router.put('/:id', validateObjectId , [auth, admin], async (req, res) => {
     const error = validateMovie(req.body);
     if (error) return res.status(400).send("The data of the movie could not be updated due to the non-conformity of the data with the schema as checked by Joi");
-    //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Movie id: ${req.params.id} is invalid id.`);
+    //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Movie id: ${req.params.id} is invalid movie id.`);
     const movieExist = await Movie.findById(req.params.id);
     if (!movieExist) return res.status(404).send(`Movie with id: ${req.params.id} is not found.`);
     const genre = await Genre.findById(req.body.genreId);

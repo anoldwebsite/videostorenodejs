@@ -46,11 +46,11 @@ router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
     //Check if the id of the genre is valid
 /*     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
         logger.error('Invalid Genre id!', req.params);
-        return res.status(404).send(`${req.params.id} is an invalid id.`);
+        return res.status(404).send(`${req.params.id} is an invalid genre id.`);
     } */
     //Check if a genre with this id exists.
     const genreExists = await Genre.findById(req.params.id);
-    if (!genreExists) return res.status(404).send(`${req.params.id} is an invalid id.`);
+    if (!genreExists) return res.status(404).send(`${req.params.id} is an invalid genre id.`);
 
     //Check if genre already exists.
     const existingGenre = await Genre.find({ name: req.body.name });

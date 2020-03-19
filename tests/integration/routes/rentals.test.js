@@ -20,7 +20,7 @@ describe('/api/rentals', () => {
         await User.deleteMany({});
         await Customer.deleteMany({});
         await Rental.deleteMany({});
-        server.close();//Asks the server to stop accepting new connections.
+        await server.close();//Asks the server to stop accepting new connections.
     });
 
     describe('POST /', () => {
@@ -171,7 +171,7 @@ describe('/api/rentals', () => {
         it('should return 404 if no rentals are found', async () => {
             const res = await request(server).get('/api/rentals');
             console.log(res.body);
-            expect(res.status).toBe(404); 
+            expect(res.status).toBe(404);
         });
     });
     describe('GET /:id', () => {

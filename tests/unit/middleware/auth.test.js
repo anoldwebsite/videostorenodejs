@@ -1,8 +1,8 @@
 //Use NODE_ENV=test npm test --runInBand to run tests if you get errors with npm test 
-/*
-We will write a unit test for the function in auth.js to make sure that if the client sends a valid json web token, as in the test above, 
-    then the req.user in auth.js will be populated with the payload of the json web token.
-*/
+
+// We will write a unit test for the function in auth.js to make sure that if the client sends a valid json web token, as in the test above, 
+//     then the req.user in auth.js will be populated with the payload of the json web token.
+
 const { User } = require('../../../models/User');//Load the User module.
 const auth = require('../../../middleware/auth');
 const mongoose = require('mongoose');

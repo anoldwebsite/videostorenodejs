@@ -13,7 +13,7 @@ describe('/api/movies', () => {
     afterEach(async () => {
         await Genre.deleteMany({});
         await Movie.deleteMany({});
-        server.close();
+        await server.close();
     });
     describe('GET /', () => {
         it('should return all movies', async () => {
@@ -50,15 +50,13 @@ describe('/api/movies', () => {
             const res = await request(server).get('/api/movies/1');
             expect(res.status).toBe(404);
         });
-        /*         it('should return a 404 if no movie is found for the supplied id.', async () => {
-                    const nonExistingId = mongoose.Types.ObjectId();
-                    console.log(` ===================> ${mongoose.Types.ObjectId.isValid(nonExistingId)}`);
-                    const res = await request(server).get('/api/movies/' + nonExistingId);
-                    console.log('*********************************');
-                    console.log(res.text);//'Something failed' Internal Server Error 500
-                    console.log('*********************************');
-                    //expect(res.status).toBe(404);
-                }); */
+        // it('should return a 404 if no movie is found for the supplied id.', async () => {
+        //     const nonExistingId = mongoose.Types.ObjectId();
+        //     console.log(` ===================> ${mongoose.Types.ObjectId.isValid(nonExistingId)}`);
+        //     const res = await request(server).get('/api/movies/' + nonExistingId);
+        //     console.log(res.text);//'Something failed' Internal Server Error 500
+        //     //expect(res.status).toBe(404);
+        // });
     });
     describe('POST /', () => {
         let admin, token, genreId, title, numberInStock, dailyRentalRate;
@@ -69,14 +67,6 @@ describe('/api/movies', () => {
             }
             token = new User(user).generateAuthToken();
             return token;
-/*             return new User(
-                {
-                    name: 'Dilshad Rana',
-                    email: 'somemail@yahoo.com',
-                    password: 'Somepassword2020?',
-                    isAdmin: admin//true for admin rights, false for non-admin user.
-                }
-            ).generateAuthToken(); */
         };
         beforeEach(async () => {
             admin = true;
@@ -108,10 +98,8 @@ describe('/api/movies', () => {
         it('should return the movie if it is valid', async () => {
             //console.log(`genreId: ${genreId}`);
             const res = await exec();
-            /*             console.log('*************************************');
-                        console.log(res.text);
-                        console.log(res.body);
-                        console.log('*************************************'); */
+            //console.log(res.text);
+            //console.log(res.body);
             expect(res.body).toHaveProperty('_id');
             expect(res.body).toHaveProperty('title', 'Movie One');
             expect(res.body).toHaveProperty('numberInStock', 3);
@@ -121,7 +109,6 @@ describe('/api/movies', () => {
         it('should save the movie if input is valid', async () => {
             await exec();
             const movie = await Movie.find({ title: 'Movie One' });
-            //console.log(movie)
             expect(movie).not.toBeNull();
             expect(movie[0].title).toBe(title);
         });
@@ -198,7 +185,7 @@ describe('/api/movies', () => {
         });
         it('should update the movie, if input is valid', async () => {
             await exec();
-            const updatedMovie = await Movie.findById(movieId); 
+            const updatedMovie = await Movie.findById(movieId);
             expect(updatedMovie.title).toBe(newTitle);
         });
         it('should return the updated movie if input is valid', async () => {
@@ -283,12 +270,6 @@ describe('/api/movies', () => {
         });
         it('should return the deleted movie, if input is valid', async () => {
             const res = await exec();
-            /*          
-                console.log('****************************************');
-                console.log(movieId);
-                console.log(res.body);
-                console.log('****************************************'); 
-            */
             expect(res.body).toHaveProperty('title', title);
             expect(res.body).toHaveProperty('_id', movieId.toString());
         });
@@ -338,4 +319,4 @@ describe('/api/movies', () => {
             //console.log(movies[0]._id);
         });
     });
-}); 
+});  

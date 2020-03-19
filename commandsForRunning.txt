@@ -1,0 +1,16 @@
+anoldwebsite$ export vidly3_jwtPrivateKey=mySecretKeyExample
+anoldwebsite$ nodemon index
+
+//For integration test, we have a separate MongDB. To do integration testing, on the terminal on Mac type
+anoldwebsite$  NODE_ENV=test node index
+OR
+anoldwebsite$  NODE_ENV=test nodemon index
+OR
+anoldwebsite$ NODE_ENV=test npm test
+OR
+anoldwebsite$ NODE_ENV=test npm test --runInBand
+OR
+anoldwebsite$ NODE_ENV=test PORT=0 npm test --runInBand 
+
+
+

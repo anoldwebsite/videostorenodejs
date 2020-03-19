@@ -9,8 +9,8 @@ describe('/api/users', () => {
         server = require('../../../index');
     });
     afterEach(async () => {
-        server.close();
         await User.deleteMany({});
+        await server.close();
     });
     describe('GET /', () => {
         let token, admin;
@@ -111,7 +111,7 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
+            //console.log(res.text);
             expect(res.status).toBe(403);
         });
         it('should save user, if the input is valid and no account exists with this email.', async () => {
@@ -129,7 +129,7 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
+            //console.log(res.text);
             expect(res.body).toHaveProperty('name', 'Mota Rana');
             expect(res.status).toBe(200);
         });
@@ -148,8 +148,8 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
-            //console.log(` ================================> ${res.status} `);
+            //console.log(res.text);
+            //console.log(` =========> ${res.status} `);
             expect(res.status).toBe(400);
         });
         it('should return 400, if the email is less than 5 characters.', async () => {
@@ -167,8 +167,8 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
-            //console.log(` ================================> ${res.status} `);
+            //console.log(` =========> ${res.text} `);
+            //console.log(` =======> ${res.status} `);
             expect(res.status).toBe(400);
         });
         it('should return 400, if the password is less than 8 characters.', async () => {
@@ -186,8 +186,8 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
-            //console.log(` ================================> ${res.status} `);
+            //console.log(` ==========> ${res.text} `);
+            //console.log(` ========> ${res.status} `);
             expect(res.status).toBe(400);
         });
         it('should return 400, if the password is not given.', async () => {
@@ -205,8 +205,6 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
-            //console.log(` ================================> ${res.status} `);
             expect(res.status).toBe(400);
         });
         it('should return 400, if the email is more than 255 characters.', async () => {
@@ -224,7 +222,7 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
+            //console.log(` ========> ${res.text} `);
             expect(res.status).toBe(400);
         });
         it('should return 400, if the name is more than 50 characters.', async () => {
@@ -242,8 +240,6 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
-            //console.log(` ================================> ${res.status} `);
             expect(res.status).toBe(400);
         });
         it('should return the newly created user, if the input is valid.', async () => {
@@ -261,7 +257,7 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ================================> ${res.text} `);
+            //console.log(` ==========> ${res.text} `);
             expect(res.text).toMatch(/Mota Rana/);
             expect(res.text).toMatch(/mota.email@yahoo.com/);
             expect(res.text).toMatch(/true/);
@@ -289,7 +285,7 @@ describe('/api/users', () => {
                         isAdmin: true
                     }
                 );
-            //console.log(` ===================================================> ${res.text} `)
+            //console.log(` =============> ${res.text} `)
             expect(res.status).toBe(400);
         });
     });
@@ -342,10 +338,8 @@ describe('/api/users', () => {
         });
         it('should return the deleted user without password with valid input', async () => {
             const deletedUser = await exec();
-            //console.log('*******************************************');
             //console.log(deletedUser.text);
             //console.log(deletedUser.text.includes(userToDelete.password));
-            //console.log('*******************************************');
             expect(deletedUser.text).toMatch(/Mota Rana/);
             expect(deletedUser.text).toMatch(/mota.mail@yahoo.com/);
             expect(deletedUser.text.includes(userToDelete.password)).toBe(false);
@@ -420,4 +414,4 @@ describe('/api/users', () => {
             expect(res.text).toMatch(/Mota Saheb/);
         });
     });
-}); 
+});

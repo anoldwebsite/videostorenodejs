@@ -7,10 +7,10 @@ const mongoose = require('mongoose');
 describe('User.generateAuthToken', () => {
     it('should return a valid json web token (JWT)', () => {
         //We need the const payload below to store the id that we create by calling new mongoose.Types.ObjectId
-        /* 
-        The const payload does not store the _id in hexadecimal as we see in the MongoDB. It stores it as a real id which is 
-        different from the hexadecimal version (type string) that we see. So, we need to convert it to String by using toHexString() method.
-        */
+
+        //The const payload does not store the _id in hexadecimal as we see in the MongoDB. It stores it as a real id which is 
+        //different from the hexadecimal version (type string) that we see. So, we need to convert it to String by using toHexString() method.
+
         const payload = {
             _id: new mongoose.Types.ObjectId().toHexString(),
             isAdmin: true

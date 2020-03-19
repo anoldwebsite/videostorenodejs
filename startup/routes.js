@@ -3,6 +3,7 @@ const genres = require('../routes/genres');
 const customers = require('../routes/customers');
 const movies = require('../routes/movies');
 const rentals = require('../routes/rentals');
+const returns = require('../routes/returns');
 const users = require('../routes/users');
 const auth = require('../routes/auth');
 const home = require('../routes/home');
@@ -18,6 +19,7 @@ module.exports = function (app) {//Takes the app object as argument supplied to 
     app.use('/api/customers', customers);
     app.use('/api/movies', movies);
     app.use('/api/rentals', rentals);
+    app.use('/api/returns', returns);
     app.use('/api/users', users);
     app.use('/api/auth', auth);
     app.use('/', home); //For home route e.g. lochalhost:3000 or netflix.com take route home in moudle home.js

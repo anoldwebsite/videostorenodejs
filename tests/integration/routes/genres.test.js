@@ -1,14 +1,14 @@
-
+//genres.test.js
 const request = require('supertest');
 const { Genre } = require('../../../models/Genre');
 const { User } = require('../../../models/User');
 const mongoose = require('mongoose');
-/* 
+
 const mongoose = require('mongoose');
 mongoose.set('useFindAndModify', false);//https://mongoosejs.com/docs/deprecations.html
 mongoose.set('useCreateIndex', true);
 
-const config = require('config'); */
+const config = require('config');
 /*
  const server = require('./startup/logging');
  The problem with the approach in the line above is that when we load the server, it is loaded at port 3000. After running the jest,
@@ -16,6 +16,7 @@ const config = require('config'); */
  due to one instance of server already running on that port. Therefore, we will start and stop the server before and each test using 
  beforeEach and afterEach utility functions in the jasmin and jest.
 */
+
 
 let server;
 
@@ -27,21 +28,9 @@ describe('/api/genres', () => {
     });//Opern the server before each test.
 
     afterEach(async () => {
-        server.close();
         await Genre.deleteMany({});//await Genre.remove({});//deprecated. USe deleteMany();
+        await server.close();
     });//shut down the connection with the server after each test.
-
-    //afterAll(() => setTimeout(() => process.exit(), 1000));
-    //afterAll(() => { app.close() });
-    //afterAll(() => { process.kill() });
-    //afterAll(() => { mongoose.disconnect() });
-    //afterAll(() => { mongoose.connection.close() });
-    /*     afterAll(() => {
-            const db = config.get('db');
-            mongoose.disconnect();
-            db.disconnect();
-            //mongoose.connection.close();
-        }); */
 
     describe('GET /', () => {
         it('should return all genres', async () => {
@@ -55,14 +44,10 @@ describe('/api/genres', () => {
             const res = await request(server).get('/api/genres/');
             expect(res.status).toBe(200);//200 is status code for ok.
             expect(res.body.length).toBe(2);//2 means two Genre objects in the database. res.body retrns an array.
-            //console.log(` =====================> ${res.body.length}`);
+            //console.log(res.body.length);
             //console.log(typeof (res.body));//Object
             //console.log(Array.isArray(res.body));//True
             expect(res.body.some(g => g.name === 'Genre One')).toBeTruthy();
-            /* (callbackfn: (value: T, index: number, array: readonly T[]) => unknown, thisArg?: any): boolean
-                A function that accepts up to three arguments. The some method calls the callbackfn function for each element in the array until the callbackfn returns a value which is coercible to the Boolean value true, or until the end of the array.
-                Determines whether the specified callback function returns true for any element of an array.
-            */
             //console.log(res.body[0].name === 'Genre One');
             //console.log(res.body[1].name === 'Genre Two');
             expect(res.body.some(g => g.name === 'Genre Two')).toBeTruthy();
@@ -79,11 +64,11 @@ describe('/api/genres', () => {
             const res = await request(server).get('/api/genres/' + genre._id);
             expect(res.status).toBe(200);
             //expect(res.body).toMatchObject(genre); 
-            /* The line above will fail because when mongoose generates property _id but sets it to an ObjectId in the MongoDB, 
-            but when we read the object genre from the MongoDB, the id is a string. So, the id generated originally by mongoose is
-            what the test expects but the one retrieved from the MongoDB is a string, so there is a diference between the 
-            expected and recieved id. Therefore, we will compare the name property of the genre instead. We can also convert the genre._id to string 
-            to compare it to the one retrieved from MongoDB. */
+            // The line above will fail because when mongoose generates property _id but sets it to an ObjectId in the MongoDB, 
+            // but when we read the object genre from the MongoDB, the id is a string. So, the id generated originally by mongoose is
+            // what the test expects but the one retrieved from the MongoDB is a string, so there is a diference between the 
+            // expected and recieved id. Therefore, we will compare the name property of the genre instead. We can also convert the genre._id to string 
+            // to compare it to the one retrieved from MongoDB.
             expect(res.body).toHaveProperty('name', genre.name);
             expect(res.body).toHaveProperty('_id', genre._id.toString());
             //console.log(typeof (res.body));//Object
@@ -162,7 +147,7 @@ describe('/api/genres', () => {
                     name = 'Gen';
                     const res = await exec(); //false means not admin i.e., isAdmin: false in the object user of class User
                     expect(res.status).toBe(400);
-                    /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
+                    // The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) 
                 });
                 it('should return 400, if genre is greater than 50 characters', async () => {
                     //Generate an invalid genre name i.e., more than 50 characters length
@@ -171,7 +156,7 @@ describe('/api/genres', () => {
                     name = new Array(52).join('G');//51 will fail the test
                     const res = await exec();
                     expect(res.status).toBe(400);
-                    /* The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) */
+                    // The HyperText Transfer Protocol (HTTP) 400 Bad Request response status code indicates that the server cannot or will not process the request due to something that is perceived to be a client error (e.g., malformed request syntax, invalid request message framing, or deceptive request routing) 
                 });
             });
         });
@@ -180,7 +165,7 @@ describe('/api/genres', () => {
                 admin = false;
                 const res = await exec();
                 expect(res.status).toBe(403);
-                /* HTTP 403 provides a distinct error case from HTTP 401; while HTTP 401 is returned when the client has not authenticated, and implies that a successful response may be returned following valid authentication, HTTP 403 is returned when the client is not permitted access to the resource despite providing authentication such as insufficient permissions of the authenticated account. */
+                // HTTP 403 provides a distinct error case from HTTP 401; while HTTP 401 is returned when the client has not authenticated, and implies that a successful response may be returned following valid authentication, HTTP 403 is returned when the client is not permitted access to the resource despite providing authentication such as insufficient permissions of the authenticated account. 
             });
         });
     });
@@ -360,7 +345,6 @@ describe('/api/genres', () => {
     });
 });
 
-/* You should write and execute each test as if it is the only test in the world. This means that each test should be
-executed in a clean state. And if you modify the state, you should always clean up after; otherwise our tests will not
-be repeatable.
-*/
+//  You should write and execute each test as if it is the only test in the world. This means that each test should be
+// executed in a clean state. And if you modify the state, you should always clean up after; otherwise our tests will not
+// be repeatable.

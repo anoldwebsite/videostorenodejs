@@ -30,9 +30,9 @@ router.get('/', [auth], async (req, res) => {
 router.delete('/:id', [auth, admin], async (req, res) => {
     const user = await User.findByIdAndDelete(req.params.id);
     if (user) return res.send(lodash.pick(user, ['id', 'name', 'email', 'isAdmin']));
-    return res.send(`User with id: ${req.params.id} could not be deleted! Invalid id.`);
+    return res.send(`User with id: ${req.params.id} could not be deleted! Invalid User id.`);
 });
-//Edit an existing user - ??????????????
+
 router.put('/:id', [auth, admin], async (req, res) => {
     const error = validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
