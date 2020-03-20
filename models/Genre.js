@@ -31,16 +31,15 @@ const genreSchema = mongoose.Schema(
 //Compiling the schema to get a class
 const Genre = mongoose.model('Genre', genreSchema);
 
-function validateGenre(genre) {
+function validateGenre(genreObject) {
     const schema = Joi.object({
         name: Joi.string().min(5).max(50).required()
     });
-    const { error } = schema.validate(genre);//Destructuring
+    return schema.validate(genreObject);//Destructuring
     //const { error, value } = schema.validate(genre);//Destructuring
     //If the input is valid then the error is undefined.
-    return error;
 };
 
 module.exports.Genre = Genre;
-module.exports.validate = validateGenre;
+module.exports.validateGenre = validateGenre;
 module.exports.genreSchema = genreSchema;

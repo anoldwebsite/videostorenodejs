@@ -1,8 +1,9 @@
 const validateObjectId = require('../middleware/validateObjectId');
-const { Genre, validate } = require('../models/Genre');
+const { Genre, validateGenre } = require('../models/Genre');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
 const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
@@ -21,9 +22,9 @@ router.get('/', async (req, res, next) => {
 //Create a new genre in the mongodb
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', [auth, admin], async (req, res) => {
-    const error = validate(req.body);
-    if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the genre with the schema!");
+router.post('/', [auth, admin, validate(validateGenre)], async (req, res) => {
+    //const error = validateGenre(req.body);
+    //if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the genre with the schema!");
     //Check if genre already exists.
     const existingGenre = await Genre.find({ name: req.body.name });
     if (existingGenre && existingGenre.length > 0) {
@@ -40,14 +41,14 @@ router.post('/', [auth, admin], async (req, res) => {
 });
 
 //put is used to update a resource in the mongodb
-router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
-    const error = validate(req.body);
-    if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the Genre with the schema!");
+router.put('/:id', validateObjectId, [auth, admin, validate(validateGenre)], async (req, res) => {
+    //const error = validateGenre(req.body);
+    //if (error) return res.status(400).send("Genre could not be updated probably due to non-conformity of the Genre with the schema!");
     //Check if the id of the genre is valid
-/*     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-        logger.error('Invalid Genre id!', req.params);
-        return res.status(404).send(`${req.params.id} is an invalid genre id.`);
-    } */
+    /*     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+            logger.error('Invalid Genre id!', req.params);
+            return res.status(404).send(`${req.params.id} is an invalid genre id.`);
+        } */
     //Check if a genre with this id exists.
     const genreExists = await Genre.findById(req.params.id);
     if (!genreExists) return res.status(404).send(`${req.params.id} is an invalid genre id.`);
@@ -76,7 +77,7 @@ router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
 });
 
 //delete is used to delete a genre/resouce from the MongoDB
-router.delete('/:id', validateObjectId ,[auth, admin], async (req, res) => {
+router.delete('/:id', validateObjectId, [auth, admin], async (req, res) => {
     //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Id: ${req.params.id} is invalid`);
     const genre = await Genre.findByIdAndDelete(req.params.id);
     //if (genre) return res.send(`The Genre ${genre} was deleted from the database.`);
