@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const router = express.Router();
 const { User } = require('../models/User');
+const validate = require('../middleware/validate');
 const Joi = require('@hapi/joi');
 const passwordComplexity = require('joi-password-complexity');
 //const asyncMiddleware = require('../middleware/async');
@@ -10,10 +11,10 @@ const passwordComplexity = require('joi-password-complexity');
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('auth');
 
-router.post('/', async (req, res) => {
+router.post('/', validate(validateAuthorization), async (req, res) => {
     //throw new Error();
-    const error = validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    //const error = validateAuthorization(req.body);
+    //if (error) return res.status(400).send(error.details[0].message);
 
     const user = await User.findOne(
         {
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-function validate(user) {
+function validateAuthorization(userDetails) {//userDetails is same as req.body
     const complexityOptions = {
         min: 8,
         max: 255,
@@ -60,8 +61,8 @@ function validate(user) {
             password: passwordComplexity(complexityOptions)
         }
     );
-    const { error } = schema.validate(user)
-    return error;
-};//function validate which validates the creation of a new user ends here.
+    //console.log(schema.validate(userDetails));
+    return schema.validate(userDetails);
+};
 
 module.exports = router;
