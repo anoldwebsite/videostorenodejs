@@ -1,7 +1,8 @@
-const { Customer, validate } = require('../models/Customer');
+const { Customer, validateCustomer } = require('../models/Customer');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
 const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
@@ -29,9 +30,9 @@ router.get('/:id', validateObjectId, async (req, res) => {
 //Edit an existing customer's data
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to edit the data.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
-  const error = validate(req.body);
-  if (error) return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
+router.put('/:id', validateObjectId, [auth, admin, validate(validateCustomer)], async (req, res) => {
+  //const error = validateCustomer(req.body);
+  //if (error) return res.status(400).send('The customer could not be updated probably due to non-conformity of the customer with the schema!');
   //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
   const customerExists = await Customer.findById(req.params.id);
   if (!customerExists) return res.status(404).send(`Invalid Customer id: ${req.params.id}`);
@@ -40,7 +41,8 @@ router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
     {
       name: req.body.name,
       phone: req.body.phone,
-      isGold: req.body.isGold
+      isGold: req.body.isGold,
+      numberOfMoviesRented: req.body.numberOfMoviesRented
     },
     {
       //omitUndefined set to true, so if some of the values are undefined, then keep what is already stored in database
@@ -57,9 +59,10 @@ router.put('/:id', validateObjectId, [auth, admin], async (req, res) => {
 //Create a new customer in the database
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', [auth, admin], async (req, res) => {
-  const error = validate(req.body);
-  if (error) return res.status(400).send('A new customer could not be created probably due to non-conformity of the customer with the schema!');
+router.post('/', [auth, admin, validate(validateCustomer)], async (req, res) => {
+  //router.post('/', [auth, admin, validate(validateCustomer), validateObjectId], async (req, res) => {
+  //const error = validateCustomer(req.body);
+  //if (error) return res.status(400).send('A new customer could not be created probably due to non-conformity of the customer with the schema!');
 
   const customer = new Customer({
     name: req.body.name,

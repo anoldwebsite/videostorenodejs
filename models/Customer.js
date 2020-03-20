@@ -52,7 +52,7 @@ const customerSchema = mongooose.Schema({
 //Compiling the schema to get a class Customer
 const Customer = mongooose.model('Customer', customerSchema);
 
-function validateCustomer(customer) {
+function validateCustomer(customerObject) {//customer is same he
   const schema = Joi.object({
     name: Joi.string()
       .min(4)
@@ -64,11 +64,10 @@ function validateCustomer(customer) {
     numberOfMoviesRented: Joi.number().min(0).max(10),
     pendingTransactions: Joi.array()
   });
-  const { error } = schema.validate(customer); //Destructuring
+  return schema.validate(customerObject); //Destructuring
   //const { error, value } = schema.validate(genre);//Destructuring
   //If the input is valid then the error is undefined.
-  return error;
 }
 
 module.exports.Customer = Customer;
-module.exports.validate = validateCustomer;
+module.exports.validateCustomer = validateCustomer;
