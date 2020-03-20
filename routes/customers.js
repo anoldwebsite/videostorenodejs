@@ -61,6 +61,7 @@ router.put('/:id', validateObjectId, [auth, admin, validate(validateCustomer)], 
 //The 3rd argument is also a middleware, a route-handler in this case.
 router.post('/', [auth, admin, validate(validateCustomer)], async (req, res) => {
   //router.post('/', [auth, admin, validate(validateCustomer), validateObjectId], async (req, res) => {
+  //The functionality of the two lines below is done by function validate(validateMovie) in the file validate.js in the middleware folder.
   //const error = validateCustomer(req.body);
   //if (error) return res.status(400).send('A new customer could not be created probably due to non-conformity of the customer with the schema!');
 

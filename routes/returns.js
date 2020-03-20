@@ -8,6 +8,15 @@ const { Movie } = require('../models/Movie');
 const auth = require('../middleware/auth');
 const express = require('express');
 const router = express.Router();
+const LoggerService = require('../middleware/logger');
+const logger = new LoggerService('rentals');
+
+router.get('/', async (req, res) => {
+    const returns = await Rental.find({ rentalType: 'return' }).sort('-dateReturned');
+    if (returns && returns.length > 0) return res.send(returns);
+    logger.info('Something went wrong! No returns found or could not be retrieved!');
+    return res.status(404).send('No returns found!');
+});
 
 router.post('/', [auth, validate(validateReturn)], async (req, res) => {
     /* The work done by the following two lines has been refactored to function validate() in file validate.js in the middleware folder.
@@ -26,14 +35,14 @@ router.post('/', [auth, validate(validateReturn)], async (req, res) => {
                 'rentalType': req.body.rentalType
             }
         ); */
-    //const rental = await Rental.lookup(req.body.customerId, req.body.movieId, req.body.rentalType);
-    const rental = await Rental.lookup(req.body.customerId, req.body.movieId);
+    const rental = await Rental.lookup(req.body.customerId, req.body.movieId, 'borrow');
     //console.log(` =======================================> ${rental}`);
     if (!rental) return res.status(404).send('Rental not found!');
 
     if (rental.dateReturned) return res.status(400).send(`Return for this rental already processed! The movie was returned on ${rental.dateReturned} .`);
 
     rental.calculateRentalFee();
+    rental.changeRentalType();
     await rental.save();
     //Update the stock after the return of this product/movie.
     await Movie.update(
@@ -52,7 +61,7 @@ function validateReturn(movieReturnObject) {
         {
             customerId: Joi.objectId().required(),
             movieId: Joi.objectId().required(),
-            rentalType: Joi.string().required()
+            rentalType: Joi.string()
         }
     );
     return schema.validate(movieReturnObject);

@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const { Rental, validateRental } = require('../models/Rental');
 const { Transaction } = require('../models/Transaction');
 const { Customer } = require('../models/Customer');
@@ -6,6 +5,7 @@ const { Movie } = require('../models/Movie');
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
 const validateObjectId = require('../middleware/validateObjectId');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
@@ -21,9 +21,10 @@ router.get('/', async (req, res) => {
 });
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', auth, async (req, res) => {
-    const error = validateRental(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+router.post('/', [auth, validate(validateRental)], async (req, res) => {
+    //The functionality of the two lines below is done by function validate(validateMovie) in the file validate.js in the middleware folder.
+    //const error = validateRental(req.body);
+    //if (error) return res.status(400).send(error.details[0].message);
 
     /* 
     What if the customerId or movieId supplied by the user is invalid. 
@@ -81,7 +82,7 @@ router.post('/', auth, async (req, res) => {
         customer.numberOfMoviesRented++;
     }
     if (req.body.rentalType === 'return') {
-        rental.dateReturned = Date.now();
+        rental.calculateRentalFee();
         movie.numberInStock++;
         if (customer.numberOfMoviesRented > 0) customer.numberOfMoviesRented--;
         //Delete the record/document for borrowing this movie as it has been returned now.

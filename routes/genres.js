@@ -24,6 +24,7 @@ router.get('/', async (req, res, next) => {
 //The 3rd argument is also a middleware, a route-handler in this case.
 router.post('/', [auth, admin, validate(validateGenre)], async (req, res) => {
     //const error = validateGenre(req.body);
+    //The functionality of the two lines below is done by function validate(validateMovie) in the file validate.js in the middleware folder.
     //if (error) return res.status(400).send("A new genre could not be created probably due to non-conformity of the genre with the schema!");
     //Check if genre already exists.
     const existingGenre = await Genre.find({ name: req.body.name });

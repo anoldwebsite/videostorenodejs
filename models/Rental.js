@@ -60,7 +60,7 @@ const rentalSchema = new mongoose.Schema(
     },
     rentalType: {
       type: String,
-      required: true,
+      //required: true,
       enum: ['borrow', 'return'],
       //default: 'borrow',
       lowercase: true,
@@ -73,13 +73,12 @@ const rentalSchema = new mongoose.Schema(
   }
 );
 
-//rentalSchema.statics.lookup = function (customerId, movieId, rentalType) {
-rentalSchema.statics.lookup = function (customerId, movieId) {
+rentalSchema.statics.lookup = function (customerId, movieId, rentalType) {
   return this.findOne(
     {
       'customer._id': customerId,
       'movie._id': movieId,
-      //'rentalType': rentalType
+      'rentalType': rentalType
     }
   );
 }
@@ -90,17 +89,20 @@ rentalSchema.methods.calculateRentalFee = function () {
   this.rentalFee = rentalDays * this.movie.dailyRentalRate;
 }
 
+rentalSchema.methods.changeRentalType = function () {
+  this.rentalType === 'borrow' ? this.rentalType = 'return' : this.rentalType = 'borrow';
+}
+
 const Rental = mongoose.model('Rental', rentalSchema);
 
-function validateRental(rental) {
-  //rental is the same as req.body
+function validateRental(rentalObject) {
+  //rentalObject is the same as req.body
   const schema = Joi.object({
     customerId: Joi.objectId().required(),
-    movieId: Joi.objectId().required()
-    //rentalType: Joi.string().required()
+    movieId: Joi.objectId().required(),
+    rentalType: Joi.string()
   });
-  const { error } = schema.validate(rental);
-  return error;
+  return schema.validate(rentalObject);
 }
 
 module.exports.Rental = Rental;
