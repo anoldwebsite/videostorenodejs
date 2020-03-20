@@ -43,7 +43,7 @@ const movieSchema = mongoose.Schema(
 //Compiling the schema to get a Movie class
 const Movie = mongoose.model('Movie', movieSchema);
 
-function validateMovie(movie) {//movie = req.body
+function validateMovie(movieObject) {//movieObject = req.body
     const schema = Joi.object(
         {
             genreId: Joi.objectId().required(),
@@ -52,8 +52,7 @@ function validateMovie(movie) {//movie = req.body
             dailyRentalRate: Joi.number().min(0).max(255).required()
         }
     );
-    const { error } = schema.validate(movie);
-    return error;
+    return schema.validate(movieObject);
 };
 
 module.exports.Movie = Movie;

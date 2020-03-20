@@ -3,6 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { Genre } = require('../models/Genre');
 const auth = require('../middleware/auth');
+const validate = require('../middleware/validate');
 const admin = require('../middleware/admin');
 //const asyncMiddleware = require('../middleware/async');
 const LoggerService = require('../middleware/logger');
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 //Get a movie with a given id
-router.get('/:id', validateObjectId ,async (req, res) => {
+router.get('/:id', validateObjectId, async (req, res) => {
     //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Invalid Id: ${req.params.id}`);
     const movie = await Movie.findById(req.params.id);
     if (movie) return res.send(movie);
@@ -31,11 +32,10 @@ router.get('/:id', validateObjectId ,async (req, res) => {
 //Create a new movie in the database
 //The 2nd argument is a middleware that checks the authorization of this user who is trying to post.
 //The 3rd argument is also a middleware, a route-handler in this case.
-router.post('/', [auth, admin], async (req, res) => {
-    const error = validateMovie(req.body);
-    if (error) {
-        return res.status(400).send("New movie could not be created in the database due to the non-conformity of the customer with the schema!");
-    }
+router.post('/', [auth, admin, validate(validateMovie)], async (req, res) => {
+    //The functionality of the two lines below is done by function validate(validateMovie) in the file validate.js in the middleware folder.
+    //const error = validateMovie(req.body);
+    //if (error) {return res.status(400).send("New movie could not be created in the database due to the non-conformity of the customer with the schema!");}
 
     const genre = await Genre.findById(req.body.genreId);
     if (!genre) return res.status(400).send('Invalid genre');
@@ -59,9 +59,11 @@ router.post('/', [auth, admin], async (req, res) => {
 });
 
 //Edit data of an existing movie
-router.put('/:id', validateObjectId , [auth, admin], async (req, res) => {
-    const error = validateMovie(req.body);
-    if (error) return res.status(400).send("The data of the movie could not be updated due to the non-conformity of the data with the schema as checked by Joi");
+router.put('/:id', validateObjectId, [auth, admin, validate(validateMovie)], async (req, res) => {
+    //The functionality of the two lines below is done by function validate(validateMovie) in the file validate.js in the middleware folder.
+    //const error = validateMovie(req.body);
+    //if (error) return res.status(400).send("The data of the movie could not be updated due to the non-conformity of the data with the schema as checked by Joi");
+    //The functionality of the line below is now done by function validateObjectId in the file validateObjectId.js in the middleware folder.
     //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send(`Movie id: ${req.params.id} is invalid movie id.`);
     const movieExist = await Movie.findById(req.params.id);
     if (!movieExist) return res.status(404).send(`Movie with id: ${req.params.id} is not found.`);
@@ -97,7 +99,7 @@ router.put('/:id', validateObjectId , [auth, admin], async (req, res) => {
 });
 
 //Delete one movie the id of which is given 
-router.delete('/:id', validateObjectId ,[auth, admin], async (req, res) => {
+router.delete('/:id', validateObjectId, [auth, admin], async (req, res) => {
     //if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).send('Invalid Movie Id');
     const movieExists = await Movie.findById(req.params.id);
     if (!movieExists) return res.status(404).send('No movie found for this id.');
