@@ -12,9 +12,10 @@ const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('rental');//rental is the name of this file/module.
 
 router.get('/', async (req, res) => {
-    const allRentals = await Rental.find({ rentalType: 'return' }).sort('-dateOut');
+    //Return all movies that are out from the store
+    const allRentals = await Rental.find({ rentalType: 'borrow' }).sort('-dateOut');
     if (allRentals && allRentals.length > 0) return res.send(allRentals);
-    logger.info('No rentals found! If rentals are in the database, then something went wrong while trying to retrieve them!');
+    logger.info('No moives have been borrowed!');
     return res.status(404).send('No rentals found/retrieved!');
 });
 
@@ -86,7 +87,7 @@ router.get('/:id', validateObjectId, async (req, res) => {
     const rental = await Rental.findById(req.params.id);
     if (rental) return res.send(rental);
 
-    logger.info('Movie with the given id could not be found!', req.params.id);
+    logger.info('Rental with the given id could not be found!', req.params.id);
     return res.status(404).send(`Rental with id: ${req.params.id} was not found!`);
 });
 
