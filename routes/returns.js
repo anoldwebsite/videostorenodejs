@@ -5,15 +5,18 @@ const Joi = require('@hapi/joi');
 const validate = require('../middleware/validate');
 const { Rental } = require('../models/Rental');
 const { Movie } = require('../models/Movie');
+const { Customer } = require('../models/Customer');
+const { Transaction } = require('../models/Transaction');
 const auth = require('../middleware/auth');
+const validateObjectId = require('../middleware/validateObjectId');
 const express = require('express');
 const router = express.Router();
 const LoggerService = require('../middleware/logger');
 const logger = new LoggerService('rentals');
 
 router.get('/', async (req, res) => {
-    const returns = await Rental.find({ rentalType: 'return' }).sort('-dateReturned');
-    if (returns && returns.length > 0) return res.send(returns);
+    const allReturns = await Rental.find({ rentalType: 'return' }).sort('-dateReturned');
+    if (allReturns && allReturns.length > 0) return res.send(allReturns);
     logger.info('Something went wrong! No returns found or could not be retrieved!');
     return res.status(404).send('No returns found!');
 });
@@ -41,16 +44,42 @@ router.post('/', [auth, validate(validateReturn)], async (req, res) => {
 
     if (rental.dateReturned) return res.status(400).send(`Return for this rental already processed! The movie was returned on ${rental.dateReturned} .`);
 
+    //Atomic transactions implementation
+    const session = await Rental.startSession();
+    if (!session) return res.status(500).send('Session could not be created. Please try later.');
+    logger.info('Session created!', session);
+    session.startTransaction();
+    logger.info('Transaction started for returning a movie!');
+
     rental.calculateRentalFee();
-    rental.changeRentalType();
+    rental.rentalType = 'return';//Change rentalType from 'borrow' to 'return' to mark the movie as returned back. 
     await rental.save();
     //Update the stock after the return of this product/movie.
     await Movie.update(
         { _id: rental.movie._id }, //Criteria for searching the movie here is the id of the movie.
         { $inc: { numberInStock: 1 } } //The property to update
     );
-
-    return res.send(rental);
+    await Customer.update(
+        { _id: rental.customer._id }, //Criteria for searching the customer is the id of the customer.
+        { $inc: { numberOfMoviesRented: -1 } } //The property to update.
+    );
+    const transaction = await createTransaction(req, res);
+    await session.commitTransaction();
+    if (rental && transaction) {
+        logger.info('Return transaction created and commited to the database!', { "transaction": transaction, "rental": rental });
+        return res.send(
+            `
+                You ${rental.rentalType}ed:
+                ${rental}
+                ***********************************************************
+                The details of the transaction are given below.
+                ${transaction}
+            `
+        );
+    }
+    session.endSession();
+    logger.error('Thee is some problem! The transaction can not be carried out now.', req.body);
+    res.status(400).send('There is some problem! Sorry, the movie can not be returned now!');
     //const error = validateRental(req.body);
     //if(error) return res.status(400).send(error.details[0].message);
 });
@@ -65,6 +94,21 @@ function validateReturn(movieReturnObject) {
         }
     );
     return schema.validate(movieReturnObject);
+}
+async function createTransaction(req, res) {
+    const transaction = new Transaction(
+        {
+            source: req.body.customerId,
+            destination: req.body.movieId,
+            state: 'done',
+            transactionType: 'return'
+        }
+    );
+    await transaction.save();
+    if (transaction) return transaction;
+
+    logger.info('Sorry, you can not return the movie now. Something failed!', req.body);
+    return res.status(400).send('Oops! Something failed. The movie can not be returned right now.');
 }
 
 module.exports = router;

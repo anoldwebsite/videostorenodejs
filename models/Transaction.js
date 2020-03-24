@@ -9,11 +9,11 @@ const transactionSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Rental'
     },
-    transactiontype: {
+    transactionType: {
         type: String,
         required: true,
         enum: ['borrow', 'return'],
-        default: 'borrow',
+        //default: 'borrow',
         lowercase: true,
         trim: true
     },

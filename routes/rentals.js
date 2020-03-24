@@ -157,7 +157,7 @@ async function createTransaction(req, res) {
                 source: req.body.movieId,
                 destination: req.body.customerId,
                 state: 'done',
-                transactiontype: req.body.rentalType
+                transactionType: req.body.rentalType
             }
         );
         await transaction.save();
@@ -169,7 +169,7 @@ async function createTransaction(req, res) {
                 source: req.body.customerId,
                 destination: req.body.movieId,
                 state: 'done',
-                transactiontype: req.body.rentalType
+                transactionType: req.body.rentalType
             }
         );
         await transaction.save();

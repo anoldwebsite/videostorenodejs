@@ -89,10 +89,6 @@ rentalSchema.methods.calculateRentalFee = function () {
   this.rentalFee = rentalDays * this.movie.dailyRentalRate;
 }
 
-rentalSchema.methods.changeRentalType = function () {
-  this.rentalType === 'borrow' ? this.rentalType = 'return' : this.rentalType = 'borrow';
-}
-
 const Rental = mongoose.model('Rental', rentalSchema);
 
 function validateRental(rentalObject) {
