@@ -12,6 +12,7 @@ require('./startup/routes')(app); //The file routes.js exports a function and we
 require('./startup/db')();//db.js in folder startup exports a function, so we are calling it with ();
 require('./startup/config')();
 require('./startup/validation')();
+require('./startup/prod')(app);
 
 //If the request object has a json object, then the module express, which is a middleware, populates req.body property.
 // json() is a middleware in the express framework that is used to parse the body of requests with a JSON payload
@@ -33,7 +34,7 @@ app.set('views', './views');//Telling the app that the  pug templates are in the
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => logger.info(`Listening on port ${PORT}`));//Make the server listening to requests.
 
-module.exports = server; 
+module.exports = server;
 
 //We can use the debug package to add debugging information to an application. Better than console.log() statements.
 //const startupDebugger = require('debug')('app:startup');
@@ -55,4 +56,3 @@ console.log(`app: ${app.get('env')}`);//Getting the environement variable proces
     app.use(morgan('tiny'));
     startupDebugger('Morgan enabled for logging http requests only in the development mode.');
 } */
- 
