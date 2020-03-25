@@ -72,7 +72,7 @@ const rentalSchema = new mongoose.Schema(
     }
   }
 );
-
+//Static method
 rentalSchema.statics.lookup = function (customerId, movieId, rentalType) {
   return this.findOne(
     {
@@ -82,11 +82,16 @@ rentalSchema.statics.lookup = function (customerId, movieId, rentalType) {
     }
   );
 }
-
+//Instance method to calculate fee for this rental.
 rentalSchema.methods.calculateRentalFee = function () {
   this.dateReturned = new Date();
+
   const rentalDays = moment().diff(this.dateOut, 'days');//Calculates the number of days the movies was rented for.
   this.rentalFee = rentalDays * this.movie.dailyRentalRate;
+}
+//Instance method to modify the stae of the property rentalType
+rentalSchema.methods.changeRentalType = function () {
+  this.rentalType === 'borrow' ? this.rentalType = 'return' : this.rentalType = 'borrow';
 }
 
 const Rental = mongoose.model('Rental', rentalSchema);

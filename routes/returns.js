@@ -52,7 +52,8 @@ router.post('/', [auth, validate(validateReturn)], async (req, res) => {
     logger.info('Transaction started for returning a movie!');
 
     rental.calculateRentalFee();
-    rental.rentalType = 'return';//Change rentalType from 'borrow' to 'return' to mark the movie as returned back. 
+    rental.changeRentalType();//Change rentalType from 'borrow' to 'return' to mark the movie as returned back. 
+    //rental.rentalType = 'return';//Change rentalType from 'borrow' to 'return' to mark the movie as returned back. 
     await rental.save();
     //Update the stock after the return of this product/movie.
     await Movie.update(
