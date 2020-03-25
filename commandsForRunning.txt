@@ -13,4 +13,10 @@ OR
 anoldwebsite$ NODE_ENV=test PORT=0 npm test --runInBand 
 
 
+On heroku after deployment:
+heroku config:set vidly3_jwtPrivateKey=mySecretKeyExample
 
+heroku config:set NODE_ENV=production 
+
+//To see all the configuration on heroku:
+heroku config 
