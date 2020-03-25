@@ -18,5 +18,19 @@ heroku config:set vidly3_jwtPrivateKey=mySecretKeyExample
 
 heroku config:set NODE_ENV=production 
 
+//To set the connection string for the production database
+heroku config:set db=mongodb+srv://mcsvu:anders46@vidly-qn5c2.mongodb.net/test?retryWrites=true&w=majority
+
 //To see all the configuration on heroku:
 heroku config 
+
+//Admin user for the on line heroku mongodb
+{
+  "id": "5e7b05468e74880017d59495",
+  "name": "Rana Dilshad",
+  "email": "dilshad.rana.pk@gmail.com",
+  "isAdmin": true
+}
+token:
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI1ZTdiMDU0NjhlNzQ4ODAwMTdkNTk0OTUiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE1ODUxMjA1ODN9.EywPABWZy1NpeZ3rf3DwFMboSzaniF1gAzljw3JUN_g
