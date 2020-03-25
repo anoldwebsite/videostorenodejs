@@ -2,7 +2,6 @@ const express = require('express');
 const genres = require('../routes/genres');
 const customers = require('../routes/customers');
 const movies = require('../routes/movies');
-const rentals = require('../routes/rentals');
 const borrow = require('../routes/borrow');
 const returns = require('../routes/returns');
 const users = require('../routes/users');
@@ -19,7 +18,6 @@ module.exports = function (app) {//Takes the app object as argument supplied to 
     app.use('/api/genres', genres); //For any route that starts with /api/genres use the router genres.
     app.use('/api/customers', customers);
     app.use('/api/movies', movies);
-    app.use('/api/rentals', rentals);
     app.use('/api/borrow', borrow);
     app.use('/api/returns', returns);
     app.use('/api/users', users);
